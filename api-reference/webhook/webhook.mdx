@@ -152,6 +152,14 @@ Think of it as setting up an automatic forwarding system - whenever someone mess
   ```
 </ParamField>
 
+<ParamField header="x-signature" type="string">
+  HMAC-SHA256 signature used to verify the authenticity of the webhook. Created using your API secret and the timestamp + request body.
+</ParamField>
+
+<ParamField header="x-timestamp" type="string">
+  Unix timestamp (in seconds) when the webhook was sent. Used to verify the request and prevent replay attacks.
+</ParamField>
+
 ### Response Codes
 
 * `200`: Message received successfully
@@ -210,5 +218,60 @@ Think of it as setting up an automatic forwarding system - whenever someone mess
     - Keep your webhook URL private
     - Implement rate limiting if needed
     - Add error handling for failed message processing
+    - All webhook requests from A1Base include an `x-signature` and `x-timestamp` header.
+    - You can verify the authenticity of each request using your API secret and the HMAC-SHA256 algorithm.
+    - Here's how the signature is generated on our side:
+
+      ```ts
+      const message = timestamp + JSON.stringify(body);
+      const signature = crypto
+        .createHmac('sha256', apiSecret)
+        .update(message)
+        .digest('hex');
+      ```
+
+    On your server, do the following to verify the signature:
+
+    1. Read the raw JSON body of the request
+    2. Get the x-timestamp header
+    3. Recreate the message string as timestamp + rawBody
+    4. Generate your own HMAC signature with your API secret
+    5. Compare it with the x-signature using a constant-time comparison
+
+    **Example in Express (Node.js)**
+    ```ts
+    import crypto from 'crypto';
+    import express from 'express';
+    const app = express();
+
+    app.use(express.json({
+      verify: (req, res, buf) => {
+        req.rawBody = buf; // capture raw body for HMAC check
+      }
+    }));
+
+    app.post('/whatsapp/incoming', (req, res) => {
+      const rawBody = req.rawBody.toString();
+      const timestamp = req.headers['x-timestamp'];
+      const receivedSig = req.headers['x-signature'];
+      const secret = process.env.A1BASE_API_SECRET;
+
+      const expectedSig = crypto
+        .createHmac('sha256', secret)
+        .update(timestamp + rawBody)
+        .digest('hex');
+
+      if (receivedSig !== expectedSig) {
+        return res.status(403).send('Invalid signature');
+      }
+
+      // Continue processing the verified request
+      res.sendStatus(200);
+    });
+    ```
+
+    <Tip>
+      Reject any webhook requests with a timestamp older than 5 minutes to prevent replay attacks.
+    </Tip>
   </Accordion>
 </AccordionGroup>
