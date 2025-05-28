@@ -33,6 +33,10 @@
     {
       "name": "A1Mail",
       "url": "a1mail"
+    },
+    {
+      "name": "A1Cron",
+      "url": "a1cron"
     }
   ],
   "anchors": [
@@ -112,6 +116,36 @@
       "pages": [
         "a1mail/custom-mail-domain/index",
         "a1mail/custom-mail-domain/verify-dns-settings"
+      ]
+    },
+    {
+      "group": "A1Cron",
+      "pages": ["a1cron/index"]
+    },
+    {
+      "group": "Getting Started with A1Cron",
+      "pages": [
+        "a1cron/introduction",
+        "a1cron/quickstart",
+        "a1cron/examples"
+      ]
+    },
+    {
+      "group": "Cron Job Management",
+      "pages": [
+        "a1cron/list",
+        "a1cron/get-details",
+        "a1cron/create",
+        "a1cron/update",
+        "a1cron/delete",
+        "a1cron/trigger"
+      ]
+    },
+    {
+      "group": "Monitoring & Logs",
+      "pages": [
+        "a1cron/get-logs",
+        "a1cron/webhooks"
       ]
     }
   ],

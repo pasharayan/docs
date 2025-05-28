@@ -1,0 +1,217 @@
+---
+title: "List Cron Jobs"
+openapi: "GET /v1/cron-jobs/{accountId}/list"
+---
+
+List all cron jobs for your company with optional filtering and pagination.
+
+## Query Parameters
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination (minimum: 1)
+</ParamField>
+
+<ParamField query="limit" type="integer" default="50">
+  Number of items per page (minimum: 1, maximum: 100)
+</ParamField>
+
+<ParamField query="is_active" type="boolean">
+  Filter by active status. Set to `true` to show only active jobs, `false` for inactive jobs only.
+</ParamField>
+
+<ParamField query="tags" type="string">
+  Comma-separated list of tags to filter by. Jobs matching any of the specified tags will be returned.
+  
+  Example: `tags=reports,daily`
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of cron job objects
+  
+  <Expandable title="Cron Job Object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the cron job
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Name of the cron job
+    </ResponseField>
+    
+    <ResponseField name="endpoint_url" type="string">
+      The URL that will be called when the cron job executes
+    </ResponseField>
+    
+    <ResponseField name="schedule" type="string">
+      Cron expression representing the schedule
+    </ResponseField>
+    
+    <ResponseField name="method" type="string">
+      HTTP method used for the request
+    </ResponseField>
+    
+    <ResponseField name="is_active" type="boolean">
+      Whether the cron job is currently active
+    </ResponseField>
+    
+    <ResponseField name="timezone" type="string">
+      Timezone for the cron job execution
+    </ResponseField>
+    
+    <ResponseField name="next_run_at" type="string">
+      ISO 8601 timestamp of the next scheduled execution
+    </ResponseField>
+    
+    <ResponseField name="last_run_at" type="string">
+      ISO 8601 timestamp of the last execution (null if never run)
+    </ResponseField>
+    
+    <ResponseField name="consecutive_failures" type="integer">
+      Number of consecutive failed executions
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp of when the cron job was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp of the last update
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="pagination" type="object">
+  Pagination information
+  
+  <Expandable title="Pagination Object">
+    <ResponseField name="page" type="integer">
+      Current page number
+    </ResponseField>
+    
+    <ResponseField name="limit" type="integer">
+      Items per page
+    </ResponseField>
+    
+    <ResponseField name="total_items" type="integer">
+      Total number of cron jobs
+    </ResponseField>
+    
+    <ResponseField name="total_pages" type="integer">
+      Total number of pages
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET "https://api.a1base.com/v1/cron-jobs/{accountId}/list?page=1&limit=20&is_active=true&tags=reports,daily" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const listCronJobs = async () => {
+  try {
+    const response = await axios.get(
+      'https://api.a1base.com/v1/cron-jobs/{accountId}/list',
+      {
+        params: {
+          page: 1,
+          limit: 20,
+          is_active: true,
+          tags: 'reports,daily'
+        },
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret'
+        }
+      }
+    );
+    
+    console.log('Cron jobs:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+listCronJobs();
+```
+
+```python Python
+import requests
+
+def list_cron_jobs():
+    url = "https://api.a1base.com/v1/cron-jobs/{accountId}/list"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret"
+    }
+    
+    params = {
+        "page": 1,
+        "limit": 20,
+        "is_active": True,
+        "tags": "reports,daily"
+    }
+    
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        print("Cron jobs:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+list_cron_jobs()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json
+{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Daily Sales Report",
+      "endpoint_url": "https://api.company.com/reports/daily",
+      "schedule": "0 9 * * *",
+      "method": "POST",
+      "is_active": true,
+      "timezone": "America/New_York",
+      "next_run_at": "2024-01-26T14:00:00Z",
+      "last_run_at": "2024-01-25T14:00:00Z",
+      "consecutive_failures": 0,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-25T14:00:00Z"
+    },
+    {
+      "id": "660f9500-f38c-52e5-b827-557766551111",
+      "name": "Weekly Summary",
+      "endpoint_url": "https://api.company.com/reports/weekly",
+      "schedule": "0 8 * * 1",
+      "method": "GET",
+      "is_active": true,
+      "timezone": "UTC",
+      "next_run_at": "2024-01-29T08:00:00Z",
+      "last_run_at": "2024-01-22T08:00:00Z",
+      "consecutive_failures": 0,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-22T08:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total_items": 2,
+    "total_pages": 1
+  }
+}
+```
+
+</ResponseExample> 

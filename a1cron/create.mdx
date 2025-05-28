@@ -1,0 +1,390 @@
+---
+title: "Create Cron Job"
+openapi: "POST /v1/cron-jobs/{accountId}/create"
+---
+
+Create a new scheduled task that will execute HTTP requests at specified intervals.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  A descriptive name for your cron job
+</ParamField>
+
+<ParamField body="description" type="string">
+  Detailed description of what this cron job does
+</ParamField>
+
+<ParamField body="endpoint_url" type="string" required>
+  The URL to call when the cron job executes. Must be a valid HTTP/HTTPS URL.
+</ParamField>
+
+<ParamField body="method" type="string" required>
+  HTTP method to use: GET, POST, PUT, DELETE
+</ParamField>
+
+<ParamField body="headers" type="object">
+  HTTP headers to include with each request. Common headers include Authorization, Content-Type, etc.
+  
+  Example:
+  ```json
+  {
+    "Authorization": "Bearer your-token",
+    "Content-Type": "application/json"
+  }
+  ```
+</ParamField>
+
+<ParamField body="body" type="string">
+  Request body for POST/PUT methods. Must be a string (JSON string if sending JSON).
+</ParamField>
+
+<ParamField body="timezone" type="string" required>
+  Timezone for schedule execution (e.g., "America/New_York", "UTC", "Europe/London")
+</ParamField>
+
+<ParamField body="schedule_config" type="object" required>
+  Schedule configuration object
+  
+  <Expandable title="Schedule Config Properties">
+    <ParamField body="repeat_type" type="string" required>
+      Type of repetition: `hourly`, `days`, `weeks`, `months`, `years`
+    </ParamField>
+    
+    <ParamField body="repeat_every" type="integer" required>
+      Frequency of repetition (e.g., 1 = every day, 2 = every 2 days)
+    </ParamField>
+    
+    <ParamField body="time" type="string" required>
+      Time in 24-hour format "HH:MM" (e.g., "09:00", "14:30")
+    </ParamField>
+    
+    <ParamField body="days_of_week" type="array">
+      Required for weekly schedules. Array of day numbers:
+      - "0" = Sunday
+      - "1" = Monday
+      - "2" = Tuesday
+      - "3" = Wednesday
+      - "4" = Thursday
+      - "5" = Friday
+      - "6" = Saturday
+    </ParamField>
+    
+    <ParamField body="end_type" type="string" required>
+      How the schedule ends: `never`, `on`, `after`
+    </ParamField>
+    
+    <ParamField body="end_date" type="string">
+      ISO 8601 timestamp when to stop (required if end_type is "on")
+    </ParamField>
+    
+    <ParamField body="end_occurrences" type="integer">
+      Number of occurrences before stopping (required if end_type is "after")
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="retry_config" type="object">
+  Retry configuration for failed requests
+  
+  <Expandable title="Retry Config Properties">
+    <ParamField body="max_retries" type="integer" default="3">
+      Maximum number of retry attempts (0-10)
+    </ParamField>
+    
+    <ParamField body="retry_delay_seconds" type="integer" default="60">
+      Seconds to wait between retries
+    </ParamField>
+    
+    <ParamField body="timeout_seconds" type="integer" default="30">
+      Maximum seconds to wait for response
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="callbacks" type="object">
+  Webhook URLs for execution notifications
+  
+  <Expandable title="Callback Properties">
+    <ParamField body="success_url" type="string">
+      URL to call on successful execution
+    </ParamField>
+    
+    <ParamField body="failure_url" type="string">
+      URL to call on failed execution
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="tags" type="array">
+  Array of tags for organization and filtering
+</ParamField>
+
+<ParamField body="is_active" type="boolean" default="true">
+  Whether the cron job should start active
+</ParamField>
+
+## Response
+
+Returns the created cron job object with generated ID and calculated next run time.
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.a1base.com/v1/cron-jobs/{accountId}/create \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Sales Report",
+    "description": "Generate comprehensive sales report",
+    "endpoint_url": "https://api.company.com/reports/daily",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer report-token",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"report_type\": \"sales\", \"format\": \"pdf\"}",
+    "timezone": "America/New_York",
+    "schedule_config": {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "09:00",
+      "end_type": "never"
+    },
+    "retry_config": {
+      "max_retries": 3,
+      "retry_delay_seconds": 300,
+      "timeout_seconds": 30
+    },
+    "callbacks": {
+      "success_url": "https://webhooks.company.com/cron-success",
+      "failure_url": "https://webhooks.company.com/cron-failure"
+    },
+    "tags": ["reports", "daily", "sales"],
+    "is_active": true
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const createCronJob = async () => {
+  const cronJobData = {
+    name: "Daily Sales Report",
+    description: "Generate comprehensive sales report",
+    endpoint_url: "https://api.company.com/reports/daily",
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer report-token",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      report_type: "sales",
+      format: "pdf"
+    }),
+    timezone: "America/New_York",
+    schedule_config: {
+      repeat_type: "days",
+      repeat_every: 1,
+      time: "09:00",
+      end_type: "never"
+    },
+    retry_config: {
+      max_retries: 3,
+      retry_delay_seconds: 300,
+      timeout_seconds: 30
+    },
+    callbacks: {
+      success_url: "https://webhooks.company.com/cron-success",
+      failure_url: "https://webhooks.company.com/cron-failure"
+    },
+    tags: ["reports", "daily", "sales"],
+    is_active: true
+  };
+
+  try {
+    const response = await axios.post(
+      'https://api.a1base.com/v1/cron-jobs/{accountId}/create',
+      cronJobData,
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret',
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    console.log('Cron job created:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+createCronJob();
+```
+
+```python Python
+import requests
+import json
+
+def create_cron_job():
+    url = "https://api.a1base.com/v1/cron-jobs/{accountId}/create"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "name": "Daily Sales Report",
+        "description": "Generate comprehensive sales report",
+        "endpoint_url": "https://api.company.com/reports/daily",
+        "method": "POST",
+        "headers": {
+            "Authorization": "Bearer report-token",
+            "Content-Type": "application/json"
+        },
+        "body": json.dumps({
+            "report_type": "sales",
+            "format": "pdf"
+        }),
+        "timezone": "America/New_York",
+        "schedule_config": {
+            "repeat_type": "days",
+            "repeat_every": 1,
+            "time": "09:00",
+            "end_type": "never"
+        },
+        "retry_config": {
+            "max_retries": 3,
+            "retry_delay_seconds": 300,
+            "timeout_seconds": 30
+        },
+        "callbacks": {
+            "success_url": "https://webhooks.company.com/cron-success",
+            "failure_url": "https://webhooks.company.com/cron-failure"
+        },
+        "tags": ["reports", "daily", "sales"],
+        "is_active": True
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("Cron job created:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+create_cron_job()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Daily Sales Report",
+    "description": "Generate comprehensive sales report",
+    "endpoint_url": "https://api.company.com/reports/daily",
+    "schedule": "0 9 * * *",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer report-token",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"report_type\": \"sales\", \"format\": \"pdf\"}",
+    "is_active": true,
+    "timezone": "America/New_York",
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "days_of_week": null,
+    "hours": 9,
+    "minutes": 0,
+    "end_type": "never",
+    "end_date": null,
+    "end_occurrences": null,
+    "max_retries": 3,
+    "retry_delay_seconds": 300,
+    "timeout_seconds": 30,
+    "success_callback_url": "https://webhooks.company.com/cron-success",
+    "failure_callback_url": "https://webhooks.company.com/cron-failure",
+    "tags": ["reports", "daily", "sales"],
+    "next_run_at": "2024-01-26T14:00:00Z",
+    "last_run_at": null,
+    "consecutive_failures": 0,
+    "created_at": "2024-01-25T10:30:00Z",
+    "updated_at": "2024-01-25T10:30:00Z"
+  }
+}
+```
+
+</ResponseExample>
+
+## Common Schedule Examples
+
+<AccordionGroup>
+  <Accordion title="Daily at 9 AM">
+    ```json
+    {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "09:00"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Every 2 hours">
+    ```json
+    {
+      "repeat_type": "hourly",
+      "repeat_every": 2,
+      "time": "00:00"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Weekdays at 6 PM">
+    ```json
+    {
+      "repeat_type": "weeks",
+      "repeat_every": 1,
+      "time": "18:00",
+      "days_of_week": ["1", "2", "3", "4", "5"]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Monthly on the 1st">
+    ```json
+    {
+      "repeat_type": "months",
+      "repeat_every": 1,
+      "time": "00:00"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="30-day campaign">
+    ```json
+    {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "10:00",
+      "end_type": "after",
+      "end_occurrences": 30
+    }
+    ```
+  </Accordion>
+</AccordionGroup> 

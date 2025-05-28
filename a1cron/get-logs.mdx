@@ -1,0 +1,289 @@
+---
+title: "Get Execution Logs"
+openapi: "GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}"
+---
+
+Retrieve the execution history and logs for a specific cron job. This endpoint provides detailed information about past executions, including success/failure status, response codes, and error messages.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+<ParamField path="cron_job_id" type="string" required>
+  The unique identifier of the cron job (UUID format)
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination (minimum: 1)
+</ParamField>
+
+<ParamField query="limit" type="integer" default="50">
+  Number of items per page (minimum: 1, maximum: 100)
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by execution status: `success`, `failure`, `error`, `timeout`
+</ParamField>
+
+<ParamField query="start_date" type="string">
+  Filter logs after this date (ISO 8601 format)
+  
+  Example: `2024-01-01T00:00:00Z`
+</ParamField>
+
+<ParamField query="end_date" type="string">
+  Filter logs before this date (ISO 8601 format)
+  
+  Example: `2024-01-31T23:59:59Z`
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of execution log objects
+  
+  <Expandable title="Execution Log Object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the execution
+    </ResponseField>
+    
+    <ResponseField name="cron_job_id" type="string">
+      ID of the cron job that was executed
+    </ResponseField>
+    
+    <ResponseField name="executed_at" type="string">
+      ISO 8601 timestamp of when the job was executed
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Execution status: `success`, `failure`, `error`, `timeout`
+    </ResponseField>
+    
+    <ResponseField name="response_code" type="integer">
+      HTTP response code from the endpoint (null for timeouts)
+    </ResponseField>
+    
+    <ResponseField name="response_body" type="string">
+      Response body from the endpoint (truncated to 1KB)
+    </ResponseField>
+    
+    <ResponseField name="error_message" type="string">
+      Error message if the execution failed
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="pagination" type="object">
+  Pagination information
+  
+  <Expandable title="Pagination Object">
+    <ResponseField name="page" type="integer">
+      Current page number
+    </ResponseField>
+    
+    <ResponseField name="limit" type="integer">
+      Items per page
+    </ResponseField>
+    
+    <ResponseField name="total_items" type="integer">
+      Total number of log entries
+    </ResponseField>
+    
+    <ResponseField name="total_pages" type="integer">
+      Total number of pages
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET "https://api.a1base.com/v1/cron-jobs/{accountId}/logs/550e8400-e29b-41d4-a716-446655440000?page=1&limit=20&status=failure" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const getCronJobLogs = async (cronJobId) => {
+  try {
+    const response = await axios.get(
+      `https://api.a1base.com/v1/cron-jobs/{accountId}/logs/${cronJobId}`,
+      {
+        params: {
+          page: 1,
+          limit: 20,
+          status: 'failure',
+          start_date: '2024-01-01T00:00:00Z'
+        },
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret'
+        }
+      }
+    );
+    
+    console.log('Execution logs:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+getCronJobLogs('550e8400-e29b-41d4-a716-446655440000');
+```
+
+```python Python
+import requests
+from datetime import datetime, timedelta
+
+def get_cron_job_logs(cron_job_id):
+    url = f"https://api.a1base.com/v1/cron-jobs/{{accountId}}/logs/{cron_job_id}"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret"
+    }
+    
+    # Get logs from the last 7 days
+    start_date = (datetime.now() - timedelta(days=7)).isoformat() + "Z"
+    
+    params = {
+        "page": 1,
+        "limit": 20,
+        "status": "failure",
+        "start_date": start_date
+    }
+    
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Found {data['pagination']['total_items']} log entries")
+        for log in data['data']:
+            print(f"{log['executed_at']}: {log['status']} - {log['response_code']}")
+    else:
+        print("Error:", response.status_code, response.json())
+
+get_cron_job_logs("550e8400-e29b-41d4-a716-446655440000")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json
+{
+  "data": [
+    {
+      "id": "exe_123456789",
+      "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+      "executed_at": "2024-01-25T14:00:00Z",
+      "status": "success",
+      "response_code": 200,
+      "response_body": "{\"message\": \"Report generated successfully\"}",
+      "error_message": null
+    },
+    {
+      "id": "exe_987654321",
+      "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+      "executed_at": "2024-01-24T14:00:05Z",
+      "status": "failure",
+      "response_code": 500,
+      "response_body": "{\"error\": \"Database connection failed\"}",
+      "error_message": "Endpoint returned status code 500"
+    },
+    {
+      "id": "exe_456789123",
+      "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+      "executed_at": "2024-01-23T14:00:00Z",
+      "status": "timeout",
+      "response_code": null,
+      "response_body": null,
+      "error_message": "Request timed out after 30 seconds"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total_items": 3,
+    "total_pages": 1
+  }
+}
+```
+
+</ResponseExample>
+
+## Log Analysis Examples
+
+<AccordionGroup>
+  <Accordion title="Find Recent Failures">
+    ```bash
+    GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}?status=failure&limit=10
+    ```
+    
+    Shows the 10 most recent failed executions.
+  </Accordion>
+  
+  <Accordion title="Daily Success Rate">
+    ```bash
+    GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}?start_date=2024-01-25T00:00:00Z&end_date=2024-01-25T23:59:59Z
+    ```
+    
+    Get all executions for a specific day to calculate success rate.
+  </Accordion>
+  
+  <Accordion title="Timeout Issues">
+    ```bash
+    GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}?status=timeout
+    ```
+    
+    Find all executions that timed out to identify performance issues.
+  </Accordion>
+  
+  <Accordion title="Error Patterns">
+    ```bash
+    GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}?status=error&limit=50
+    ```
+    
+    Analyze error patterns to improve reliability.
+  </Accordion>
+</AccordionGroup>
+
+## Understanding Status Codes
+
+<ResponseField name="success">
+  The endpoint returned a 2xx status code
+</ResponseField>
+
+<ResponseField name="failure">
+  The endpoint returned a 4xx or 5xx status code
+</ResponseField>
+
+<ResponseField name="error">
+  Network error or invalid endpoint URL
+</ResponseField>
+
+<ResponseField name="timeout">
+  The request exceeded the configured timeout
+</ResponseField>
+
+## Best Practices
+
+<Tip>
+1. **Regular Monitoring**: Check logs daily for critical jobs
+2. **Set Up Alerts**: Use failure callbacks to get notified immediately
+3. **Analyze Patterns**: Look for time-based failure patterns
+4. **Export Important Logs**: Download logs before they expire
+5. **Calculate Metrics**: Track success rates and response times
+</Tip>
+
+## Log Retention
+
+<Note>
+Execution logs are retained for 30 days. Export important logs if you need longer retention.
+</Note> 

@@ -1,0 +1,405 @@
+---
+title: "Webhooks"
+description: "Receive real-time notifications about cron job executions"
+---
+
+# Webhooks
+
+A1Cron supports webhook callbacks to notify your application about cron job execution results in real-time. You can configure separate URLs for successful and failed executions.
+
+## Webhook Configuration
+
+When creating or updating a cron job, you can specify webhook URLs in the `callbacks` object:
+
+```json
+{
+  "callbacks": {
+    "success_url": "https://your-app.com/webhooks/cron-success",
+    "failure_url": "https://your-app.com/webhooks/cron-failure"
+  }
+}
+```
+
+## Webhook Payload
+
+Both success and failure webhooks receive the same payload structure:
+
+<ResponseField name="cron_job_id" type="string">
+  The unique identifier of the cron job
+</ResponseField>
+
+<ResponseField name="cron_job_name" type="string">
+  The name of the cron job
+</ResponseField>
+
+<ResponseField name="execution_id" type="string">
+  Unique identifier for this specific execution
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Execution status: `success`, `failure`, `error`, or `timeout`
+</ResponseField>
+
+<ResponseField name="executed_at" type="string">
+  ISO 8601 timestamp of when the job was executed
+</ResponseField>
+
+<ResponseField name="response_code" type="integer">
+  HTTP response code from the endpoint (null for timeouts)
+</ResponseField>
+
+<ResponseField name="response_time_ms" type="integer">
+  Time taken for the request in milliseconds
+</ResponseField>
+
+<ResponseField name="response_body" type="string">
+  Response body from the endpoint (truncated to 1KB)
+</ResponseField>
+
+<ResponseField name="error_message" type="string">
+  Error message if the execution failed (null for success)
+</ResponseField>
+
+<ResponseField name="retry_attempt" type="integer">
+  Which retry attempt this was (0 for first attempt)
+</ResponseField>
+
+<ResponseField name="next_retry_at" type="string">
+  ISO 8601 timestamp of next retry (null if no more retries)
+</ResponseField>
+
+## Webhook Examples
+
+### Success Webhook Payload
+
+```json
+{
+  "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "cron_job_name": "Daily Sales Report",
+  "execution_id": "exe_123456789",
+  "status": "success",
+  "executed_at": "2024-01-25T14:00:00Z",
+  "response_code": 200,
+  "response_time_ms": 245,
+  "response_body": "{\"message\": \"Report generated successfully\", \"report_id\": \"rpt_98765\"}",
+  "error_message": null,
+  "retry_attempt": 0,
+  "next_retry_at": null
+}
+```
+
+### Failure Webhook Payload
+
+```json
+{
+  "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "cron_job_name": "Daily Sales Report",
+  "execution_id": "exe_987654321",
+  "status": "failure",
+  "executed_at": "2024-01-25T14:00:00Z",
+  "response_code": 500,
+  "response_time_ms": 1245,
+  "response_body": "{\"error\": \"Database connection failed\"}",
+  "error_message": "Endpoint returned status code 500",
+  "retry_attempt": 1,
+  "next_retry_at": "2024-01-25T14:05:00Z"
+}
+```
+
+### Timeout Webhook Payload
+
+```json
+{
+  "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "cron_job_name": "Daily Sales Report",
+  "execution_id": "exe_456789123",
+  "status": "timeout",
+  "executed_at": "2024-01-25T14:00:00Z",
+  "response_code": null,
+  "response_time_ms": 30000,
+  "response_body": null,
+  "error_message": "Request timed out after 30 seconds",
+  "retry_attempt": 2,
+  "next_retry_at": "2024-01-25T14:10:00Z"
+}
+```
+
+## Implementing Webhook Handlers
+
+### Node.js Express Example
+
+```javascript
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// Success webhook handler
+app.post('/webhooks/cron-success', (req, res) => {
+  const {
+    cron_job_id,
+    cron_job_name,
+    execution_id,
+    response_body,
+    executed_at
+  } = req.body;
+
+  console.log(`✅ Cron job "${cron_job_name}" executed successfully`);
+  console.log(`Execution ID: ${execution_id}`);
+  console.log(`Response: ${response_body}`);
+
+  // Process the successful execution
+  // e.g., update database, send notifications, etc.
+
+  res.status(200).json({ received: true });
+});
+
+// Failure webhook handler
+app.post('/webhooks/cron-failure', (req, res) => {
+  const {
+    cron_job_id,
+    cron_job_name,
+    execution_id,
+    status,
+    error_message,
+    retry_attempt,
+    next_retry_at
+  } = req.body;
+
+  console.error(`❌ Cron job "${cron_job_name}" failed`);
+  console.error(`Status: ${status}`);
+  console.error(`Error: ${error_message}`);
+  console.error(`Retry attempt: ${retry_attempt}`);
+  
+  if (next_retry_at) {
+    console.log(`Next retry at: ${next_retry_at}`);
+  } else {
+    console.error('No more retries scheduled');
+    // Send alert to team
+  }
+
+  res.status(200).json({ received: true });
+});
+
+app.listen(3000, () => {
+  console.log('Webhook server listening on port 3000');
+});
+```
+
+### Python Flask Example
+
+```python
+from flask import Flask, request, jsonify
+import logging
+
+app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+
+@app.route('/webhooks/cron-success', methods=['POST'])
+def handle_cron_success():
+    data = request.json
+    
+    logging.info(f"✅ Cron job '{data['cron_job_name']}' executed successfully")
+    logging.info(f"Execution ID: {data['execution_id']}")
+    logging.info(f"Response: {data['response_body']}")
+    
+    # Process the successful execution
+    # e.g., update database, send notifications, etc.
+    
+    return jsonify({"received": True}), 200
+
+@app.route('/webhooks/cron-failure', methods=['POST'])
+def handle_cron_failure():
+    data = request.json
+    
+    logging.error(f"❌ Cron job '{data['cron_job_name']}' failed")
+    logging.error(f"Status: {data['status']}")
+    logging.error(f"Error: {data['error_message']}")
+    logging.error(f"Retry attempt: {data['retry_attempt']}")
+    
+    if data.get('next_retry_at'):
+        logging.info(f"Next retry at: {data['next_retry_at']}")
+    else:
+        logging.error('No more retries scheduled')
+        # Send alert to team
+        send_alert_to_team(data)
+    
+    return jsonify({"received": True}), 200
+
+def send_alert_to_team(data):
+    # Implement your alerting logic here
+    pass
+
+if __name__ == '__main__':
+    app.run(port=3000)
+```
+
+## Webhook Security
+
+### Verify Webhook Signatures
+
+A1Cron signs webhook payloads using HMAC-SHA256. Verify the signature to ensure the webhook is from A1Cron:
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+  
+  return signature === expectedSignature;
+}
+
+app.post('/webhooks/cron-success', (req, res) => {
+  const signature = req.headers['x-a1cron-signature'];
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  
+  if (!verifyWebhookSignature(req.body, signature, webhookSecret)) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+  
+  // Process the webhook...
+});
+```
+
+### IP Whitelisting
+
+For additional security, whitelist A1Cron's webhook IP addresses:
+- `52.89.214.238`
+- `34.212.75.30`
+- `54.218.53.128`
+
+## Webhook Best Practices
+
+<AccordionGroup>
+  <Accordion title="Respond Quickly">
+    Return a 2xx status code within 10 seconds. Process heavy operations asynchronously.
+    
+    ```javascript
+    app.post('/webhooks/cron-success', (req, res) => {
+      // Acknowledge receipt immediately
+      res.status(200).json({ received: true });
+      
+      // Process asynchronously
+      processWebhookAsync(req.body);
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Implement Idempotency">
+    Use the `execution_id` to prevent duplicate processing:
+    
+    ```javascript
+    const processedExecutions = new Set();
+    
+    app.post('/webhooks/cron-success', (req, res) => {
+      const { execution_id } = req.body;
+      
+      if (processedExecutions.has(execution_id)) {
+        return res.status(200).json({ received: true });
+      }
+      
+      processedExecutions.add(execution_id);
+      // Process the webhook...
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle Retries">
+    A1Cron retries failed webhook deliveries up to 3 times with exponential backoff.
+  </Accordion>
+  
+  <Accordion title="Monitor Webhook Health">
+    Log all webhook receipts and failures for debugging:
+    
+    ```javascript
+    app.post('/webhooks/*', (req, res, next) => {
+      console.log({
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        body: req.body,
+        headers: req.headers
+      });
+      next();
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Common Use Cases
+
+### Alert on Failures
+
+```javascript
+app.post('/webhooks/cron-failure', async (req, res) => {
+  const { cron_job_name, error_message, retry_attempt } = req.body;
+  
+  // Send immediate alert for critical jobs
+  if (cron_job_name.includes('critical')) {
+    await sendSlackAlert({
+      text: `🚨 Critical cron job failed: ${cron_job_name}`,
+      error: error_message,
+      attempt: retry_attempt
+    });
+  }
+  
+  res.status(200).json({ received: true });
+});
+```
+
+### Track Execution Metrics
+
+```javascript
+app.post('/webhooks/cron-success', async (req, res) => {
+  const { cron_job_id, response_time_ms, executed_at } = req.body;
+  
+  // Store metrics in time-series database
+  await metricsDB.insert({
+    job_id: cron_job_id,
+    timestamp: executed_at,
+    duration_ms: response_time_ms,
+    status: 'success'
+  });
+  
+  res.status(200).json({ received: true });
+});
+```
+
+### Chain Dependent Jobs
+
+```javascript
+app.post('/webhooks/cron-success', async (req, res) => {
+  const { cron_job_name, response_body } = req.body;
+  
+  // Trigger dependent job after data sync completes
+  if (cron_job_name === 'Data Sync') {
+    const syncResult = JSON.parse(response_body);
+    if (syncResult.records_synced > 0) {
+      await triggerCronJob('Data Processing Job');
+    }
+  }
+  
+  res.status(200).json({ received: true });
+});
+```
+
+## Testing Webhooks
+
+Use [webhook.site](https://webhook.site) to test webhook integration:
+
+1. Go to webhook.site to get a unique URL
+2. Use it as your webhook URL when creating a cron job
+3. Trigger the cron job manually
+4. View the webhook payload on webhook.site
+
+Example:
+```json
+{
+  "callbacks": {
+    "success_url": "https://webhook.site/your-unique-id",
+    "failure_url": "https://webhook.site/your-unique-id"
+  }
+}
+``` 

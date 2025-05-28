@@ -1,0 +1,202 @@
+---
+title: "Introduction to A1Cron"
+description: "Understanding A1Base's cron job scheduling system"
+---
+
+# Introduction to A1Cron
+
+A1Cron is A1Base's powerful cron job management system that enables you to schedule and automate HTTP requests with precision. Whether you need to run daily reports, sync data between systems, or perform regular health checks, A1Cron provides the tools you need to automate these tasks reliably.
+
+## What is A1Cron?
+
+A1Cron allows you to:
+- Schedule HTTP requests to run at specific times and intervals
+- Monitor execution status and view detailed logs
+- Configure automatic retries for failed requests
+- Receive webhook notifications for job outcomes
+- Organize jobs with tags for easy management
+
+## Core Concepts
+
+### Cron Jobs
+A cron job is a scheduled task that executes an HTTP request at specified intervals. Each job includes:
+- **Endpoint URL**: The target URL to call
+- **Schedule**: When and how often to run
+- **HTTP Configuration**: Method, headers, and body
+- **Retry Settings**: How to handle failures
+- **Callbacks**: Webhooks for success/failure notifications
+
+### Scheduling Options
+
+<Tabs>
+  <Tab title="Hourly">
+    Run tasks every N hours. Perfect for:
+    - Regular data syncs
+    - Cache refreshing
+    - Monitoring checks
+    
+    ```json
+    {
+      "repeat_type": "hourly",
+      "repeat_every": 2,
+      "time": "00:30"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Daily">
+    Execute at a specific time each day. Ideal for:
+    - Daily reports
+    - Backup operations
+    - End-of-day processing
+    
+    ```json
+    {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "09:00"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Weekly">
+    Run on specific days of the week. Great for:
+    - Weekly summaries
+    - Business day operations
+    - Weekend maintenance
+    
+    ```json
+    {
+      "repeat_type": "weeks",
+      "repeat_every": 1,
+      "time": "08:00",
+      "days_of_week": ["1", "3", "5"]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Monthly">
+    Execute on the first of each month. Perfect for:
+    - Monthly billing
+    - Report generation
+    - Data archival
+    
+    ```json
+    {
+      "repeat_type": "months",
+      "repeat_every": 1,
+      "time": "00:00"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Timezone Support
+
+All cron jobs run in the timezone you specify. A1Cron supports all standard timezone identifiers:
+- `America/New_York`
+- `Europe/London`
+- `Asia/Tokyo`
+- `UTC`
+
+<Note>
+Timezone support ensures your jobs run at the correct local time, automatically adjusting for daylight saving time changes.
+</Note>
+
+### Retry Configuration
+
+Configure how A1Cron handles failed requests:
+
+```json
+{
+  "max_retries": 3,
+  "retry_delay_seconds": 60,
+  "timeout_seconds": 30
+}
+```
+
+- **max_retries**: Number of retry attempts (0-10)
+- **retry_delay_seconds**: Wait time between retries
+- **timeout_seconds**: Maximum time to wait for response
+
+### Webhook Callbacks
+
+Get notified about job execution results:
+
+```json
+{
+  "success_url": "https://your-app.com/webhooks/cron-success",
+  "failure_url": "https://your-app.com/webhooks/cron-failure"
+}
+```
+
+Callbacks receive POST requests with execution details:
+```json
+{
+  "cron_job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "execution_id": "exe_123456",
+  "status": "success",
+  "executed_at": "2024-01-25T14:00:00Z",
+  "response_code": 200,
+  "response_time_ms": 245
+}
+```
+
+## Authentication
+
+All API requests require authentication headers:
+
+```bash
+X-API-Key: your-api-key
+X-API-Secret: your-api-secret
+```
+
+Get your credentials from the [A1Base Dashboard](https://a1base.com).
+
+## Base URL
+
+All A1Cron endpoints use the base URL:
+```
+https://api.a1base.com
+```
+
+## Rate Limits
+
+- **API Requests**: 1000 requests per hour
+- **Cron Jobs**: Maximum 100 active jobs per account
+- **Execution Frequency**: Minimum interval of 1 hour for hourly jobs
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Design Idempotent Endpoints">
+    Your endpoint should handle being called multiple times safely. Use unique identifiers or timestamps to prevent duplicate processing.
+  </Accordion>
+  
+  <Accordion title="Handle Timeouts Gracefully">
+    Set appropriate timeout values and ensure your endpoints can complete within the configured time limit.
+  </Accordion>
+  
+  <Accordion title="Use Tags for Organization">
+    Tag your cron jobs by environment, purpose, or team to make management easier as your usage grows.
+  </Accordion>
+  
+  <Accordion title="Monitor Execution Logs">
+    Regularly review execution logs to identify patterns and optimize performance.
+  </Accordion>
+  
+  <Accordion title="Test Before Production">
+    Use the manual trigger feature to test your cron jobs before enabling scheduled execution.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="play" href="/a1cron/quickstart">
+    Create your first cron job
+  </Card>
+  <Card title="API Reference" icon="book" href="/a1cron/create">
+    Explore the complete API
+  </Card>
+</CardGroup> 

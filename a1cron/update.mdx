@@ -1,0 +1,321 @@
+---
+title: "Update Cron Job"
+openapi: "PATCH /v1/cron-jobs/{accountId}/update/{cron_job_id}"
+---
+
+Update an existing cron job. All fields are optional - only provide the fields you want to update.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+<ParamField path="cron_job_id" type="string" required>
+  The unique identifier of the cron job to update (UUID format)
+</ParamField>
+
+## Request Body
+
+All fields are optional. Only include the fields you want to update.
+
+<ParamField body="name" type="string">
+  New name for the cron job
+</ParamField>
+
+<ParamField body="description" type="string">
+  New description
+</ParamField>
+
+<ParamField body="endpoint_url" type="string">
+  New URL to call
+</ParamField>
+
+<ParamField body="method" type="string">
+  New HTTP method: GET, POST, PUT, DELETE
+</ParamField>
+
+<ParamField body="headers" type="object">
+  New HTTP headers (replaces all existing headers)
+</ParamField>
+
+<ParamField body="body" type="string">
+  New request body for POST/PUT methods
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  New timezone
+</ParamField>
+
+<ParamField body="schedule_config" type="object">
+  New schedule configuration (replaces entire schedule)
+  
+  <Expandable title="Schedule Config Properties">
+    <ParamField body="repeat_type" type="string">
+      Type of repetition: `hourly`, `days`, `weeks`, `months`, `years`
+    </ParamField>
+    
+    <ParamField body="repeat_every" type="integer">
+      Frequency of repetition
+    </ParamField>
+    
+    <ParamField body="time" type="string">
+      Time in 24-hour format "HH:MM"
+    </ParamField>
+    
+    <ParamField body="days_of_week" type="array">
+      For weekly schedules: array of day numbers ("0"-"6")
+    </ParamField>
+    
+    <ParamField body="end_type" type="string">
+      How the schedule ends: `never`, `on`, `after`
+    </ParamField>
+    
+    <ParamField body="end_date" type="string">
+      ISO 8601 timestamp when to stop
+    </ParamField>
+    
+    <ParamField body="end_occurrences" type="integer">
+      Number of occurrences before stopping
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="retry_config" type="object">
+  New retry configuration
+  
+  <Expandable title="Retry Config Properties">
+    <ParamField body="max_retries" type="integer">
+      Maximum retry attempts (0-10)
+    </ParamField>
+    
+    <ParamField body="retry_delay_seconds" type="integer">
+      Seconds between retries
+    </ParamField>
+    
+    <ParamField body="timeout_seconds" type="integer">
+      Response timeout in seconds
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="callbacks" type="object">
+  New webhook URLs
+  
+  <Expandable title="Callback Properties">
+    <ParamField body="success_url" type="string">
+      Success webhook URL
+    </ParamField>
+    
+    <ParamField body="failure_url" type="string">
+      Failure webhook URL
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="tags" type="array">
+  New array of tags (replaces all existing tags)
+</ParamField>
+
+<ParamField body="is_active" type="boolean">
+  Activate or deactivate the cron job
+</ParamField>
+
+## Response
+
+Returns the updated cron job object with all current values.
+
+<RequestExample>
+
+```bash cURL
+curl -X PATCH "https://api.a1base.com/v1/cron-jobs/{accountId}/update/550e8400-e29b-41d4-a716-446655440000" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Daily Report",
+    "schedule_config": {
+      "repeat_type": "weeks",
+      "repeat_every": 1,
+      "time": "10:00",
+      "days_of_week": ["1", "3", "5"],
+      "end_type": "never"
+    },
+    "is_active": false
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const updateCronJob = async (cronJobId) => {
+  const updates = {
+    name: "Updated Daily Report",
+    schedule_config: {
+      repeat_type: "weeks",
+      repeat_every: 1,
+      time: "10:00",
+      days_of_week: ["1", "3", "5"],
+      end_type: "never"
+    },
+    is_active: false
+  };
+
+  try {
+    const response = await axios.patch(
+      `https://api.a1base.com/v1/cron-jobs/{accountId}/update/${cronJobId}`,
+      updates,
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret',
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    console.log('Cron job updated:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+updateCronJob('550e8400-e29b-41d4-a716-446655440000');
+```
+
+```python Python
+import requests
+
+def update_cron_job(cron_job_id):
+    url = f"https://api.a1base.com/v1/cron-jobs/{{accountId}}/update/{cron_job_id}"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret",
+        "Content-Type": "application/json"
+    }
+    
+    updates = {
+        "name": "Updated Daily Report",
+        "schedule_config": {
+            "repeat_type": "weeks",
+            "repeat_every": 1,
+            "time": "10:00",
+            "days_of_week": ["1", "3", "5"],
+            "end_type": "never"
+        },
+        "is_active": False
+    }
+    
+    response = requests.patch(url, headers=headers, json=updates)
+    
+    if response.status_code == 200:
+        print("Cron job updated:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+update_cron_job("550e8400-e29b-41d4-a716-446655440000")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Updated Daily Report",
+    "description": "Generate comprehensive sales report",
+    "endpoint_url": "https://api.company.com/reports/daily",
+    "schedule": "0 10 * * 1,3,5",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer report-token",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"report_type\": \"sales\", \"format\": \"pdf\"}",
+    "is_active": false,
+    "timezone": "America/New_York",
+    "repeat_type": "weeks",
+    "repeat_every": 1,
+    "days_of_week": ["1", "3", "5"],
+    "hours": 10,
+    "minutes": 0,
+    "end_type": "never",
+    "end_date": null,
+    "end_occurrences": null,
+    "max_retries": 3,
+    "retry_delay_seconds": 300,
+    "timeout_seconds": 30,
+    "success_callback_url": "https://webhooks.company.com/cron-success",
+    "failure_callback_url": "https://webhooks.company.com/cron-failure",
+    "tags": ["reports", "daily", "sales"],
+    "next_run_at": null,
+    "last_run_at": "2024-01-25T14:00:00Z",
+    "consecutive_failures": 0,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-25T15:30:00Z"
+  }
+}
+```
+
+</ResponseExample>
+
+## Common Update Scenarios
+
+<AccordionGroup>
+  <Accordion title="Change Schedule Time">
+    ```json
+    {
+      "schedule_config": {
+        "time": "14:30"
+      }
+    }
+    ```
+    Note: When updating schedule_config, you must provide all required fields for the schedule type.
+  </Accordion>
+  
+  <Accordion title="Pause/Resume">
+    ```json
+    {
+      "is_active": false
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Update Headers">
+    ```json
+    {
+      "headers": {
+        "Authorization": "Bearer new-token",
+        "Content-Type": "application/json",
+        "X-Custom-Header": "value"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Change Tags">
+    ```json
+    {
+      "tags": ["updated", "production", "critical"]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Update Callbacks">
+    ```json
+    {
+      "callbacks": {
+        "success_url": "https://new-webhook.com/success",
+        "failure_url": "https://new-webhook.com/failure"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+When updating `schedule_config`, provide the complete configuration object with all required fields for the schedule type, not just the fields you want to change.
+</Note> 

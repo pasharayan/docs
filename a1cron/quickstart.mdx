@@ -1,0 +1,325 @@
+---
+title: "Quick Start"
+description: "Get up and running with A1Cron in minutes"
+---
+
+# Quick Start
+
+This guide will help you create and manage your first cron job with A1Cron. By the end, you'll have a scheduled task running automatically.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+- An A1Base account
+- Your API key and secret from the [dashboard](https://a1base.com)
+- A publicly accessible endpoint URL to call
+
+## Step 1: Create Your First Cron Job
+
+Let's create a simple daily cron job that calls your endpoint every morning at 9 AM.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.a1base.com/v1/cron-jobs/{accountId}/create \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Morning Report",
+    "description": "Generate daily sales report",
+    "endpoint_url": "https://your-app.com/api/daily-report",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer your-token",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"report_type\": \"daily\", \"format\": \"pdf\"}",
+    "timezone": "America/New_York",
+    "schedule_config": {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "09:00",
+      "end_type": "never"
+    },
+    "retry_config": {
+      "max_retries": 3,
+      "retry_delay_seconds": 300,
+      "timeout_seconds": 30
+    },
+    "tags": ["reports", "daily"],
+    "is_active": true
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const createCronJob = async () => {
+  try {
+    const response = await axios.post(
+      'https://api.a1base.com/v1/cron-jobs/{accountId}/create',
+      {
+        name: 'Daily Morning Report',
+        description: 'Generate daily sales report',
+        endpoint_url: 'https://your-app.com/api/daily-report',
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer your-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          report_type: 'daily',
+          format: 'pdf'
+        }),
+        timezone: 'America/New_York',
+        schedule_config: {
+          repeat_type: 'days',
+          repeat_every: 1,
+          time: '09:00',
+          end_type: 'never'
+        },
+        retry_config: {
+          max_retries: 3,
+          retry_delay_seconds: 300,
+          timeout_seconds: 30
+        },
+        tags: ['reports', 'daily'],
+        is_active: true
+      },
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret',
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    console.log('Cron job created:', response.data);
+  } catch (error) {
+    console.error('Error creating cron job:', error.response.data);
+  }
+};
+
+createCronJob();
+```
+
+```python Python
+import requests
+import json
+
+def create_cron_job():
+    url = "https://api.a1base.com/v1/cron-jobs/{accountId}/create"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "name": "Daily Morning Report",
+        "description": "Generate daily sales report",
+        "endpoint_url": "https://your-app.com/api/daily-report",
+        "method": "POST",
+        "headers": {
+            "Authorization": "Bearer your-token",
+            "Content-Type": "application/json"
+        },
+        "body": json.dumps({
+            "report_type": "daily",
+            "format": "pdf"
+        }),
+        "timezone": "America/New_York",
+        "schedule_config": {
+            "repeat_type": "days",
+            "repeat_every": 1,
+            "time": "09:00",
+            "end_type": "never"
+        },
+        "retry_config": {
+            "max_retries": 3,
+            "retry_delay_seconds": 300,
+            "timeout_seconds": 30
+        },
+        "tags": ["reports", "daily"],
+        "is_active": True
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("Cron job created:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+create_cron_job()
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Daily Morning Report",
+    "description": "Generate daily sales report",
+    "endpoint_url": "https://your-app.com/api/daily-report",
+    "schedule": "0 9 * * *",
+    "method": "POST",
+    "is_active": true,
+    "timezone": "America/New_York",
+    "next_run_at": "2024-01-26T14:00:00Z",
+    "created_at": "2024-01-25T10:30:00Z"
+  }
+}
+```
+
+<Note>
+Save the returned `id` - you'll need it to manage this cron job later.
+</Note>
+
+## Step 2: Verify Your Cron Job
+
+Let's check that your cron job was created successfully:
+
+```bash
+curl -X GET https://api.a1base.com/v1/cron-jobs/{accountId}/details/{cron_job_id} \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+## Step 3: Test with Manual Trigger
+
+Before waiting for the scheduled time, test your cron job manually:
+
+```bash
+curl -X POST https://api.a1base.com/v1/cron-jobs/{accountId}/trigger/{cron_job_id} \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+This will immediately execute your cron job and return the result:
+
+```json
+{
+  "data": {
+    "execution_id": "exe_123456",
+    "status": "success",
+    "response_code": 200,
+    "response_body": "{\"message\": \"Report generated successfully\"}",
+    "executed_at": "2024-01-25T10:35:00Z"
+  }
+}
+```
+
+## Step 4: Monitor Execution Logs
+
+Check the execution history of your cron job:
+
+```bash
+curl -X GET "https://api.a1base.com/v1/cron-jobs/{accountId}/logs/{cron_job_id}?limit=10" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+## Common Patterns
+
+### Hourly Health Check
+
+```json
+{
+  "name": "API Health Check",
+  "endpoint_url": "https://your-api.com/health",
+  "method": "GET",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "hourly",
+    "repeat_every": 1,
+    "time": "00:00"
+  },
+  "callbacks": {
+    "failure_url": "https://your-app.com/alerts/health-check-failed"
+  }
+}
+```
+
+### Weekly Report on Business Days
+
+```json
+{
+  "name": "Weekday Summary",
+  "endpoint_url": "https://your-app.com/api/summary",
+  "method": "POST",
+  "timezone": "America/Chicago",
+  "schedule_config": {
+    "repeat_type": "weeks",
+    "repeat_every": 1,
+    "time": "17:00",
+    "days_of_week": ["1", "2", "3", "4", "5"]
+  }
+}
+```
+
+### Limited Duration Campaign
+
+```json
+{
+  "name": "30-Day Campaign",
+  "endpoint_url": "https://your-app.com/api/campaign",
+  "method": "POST",
+  "timezone": "America/Los_Angeles",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "10:00",
+    "end_type": "after",
+    "end_occurrences": 30
+  }
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="My cron job isn't running">
+    - Check that `is_active` is set to `true`
+    - Verify the timezone and scheduled time
+    - Ensure your endpoint URL is publicly accessible
+    - Check the execution logs for error messages
+  </Accordion>
+  
+  <Accordion title="Getting authentication errors">
+    - Verify your API key and secret are correct
+    - Ensure you're including both headers in your requests
+    - Check that your account ID in the URL is correct
+  </Accordion>
+  
+  <Accordion title="Endpoint timeouts">
+    - Increase the `timeout_seconds` in your retry configuration
+    - Ensure your endpoint responds within the timeout period
+    - Consider optimizing your endpoint for faster response
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have a working cron job:
+
+<CardGroup cols={2}>
+  <Card title="Explore Examples" icon="lightbulb" href="/a1cron/examples">
+    See more use cases and patterns
+  </Card>
+  <Card title="API Reference" icon="book" href="/a1cron/create">
+    Deep dive into all endpoints
+  </Card>
+  <Card title="Monitoring Guide" icon="chart-line" href="/a1cron/get-logs">
+    Learn about logs and monitoring
+  </Card>
+  <Card title="Webhook Setup" icon="webhook" href="/a1cron/webhooks">
+    Configure success/failure callbacks
+  </Card>
+</CardGroup> 

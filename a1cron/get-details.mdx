@@ -1,0 +1,238 @@
+---
+title: "Get Cron Job Details"
+openapi: "GET /v1/cron-jobs/{accountId}/details/{cron_job_id}"
+---
+
+Get comprehensive details about a specific cron job including full configuration and execution history.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+<ParamField path="cron_job_id" type="string" required>
+  The unique identifier of the cron job (UUID format)
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  Detailed cron job information
+  
+  <Expandable title="Cron Job Details">
+    <ResponseField name="id" type="string">
+      Unique identifier for the cron job
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Name of the cron job
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Description of what the cron job does
+    </ResponseField>
+    
+    <ResponseField name="endpoint_url" type="string">
+      The URL that will be called when the cron job executes
+    </ResponseField>
+    
+    <ResponseField name="schedule" type="string">
+      Cron expression representing the schedule
+    </ResponseField>
+    
+    <ResponseField name="method" type="string">
+      HTTP method used for the request (GET, POST, PUT, DELETE)
+    </ResponseField>
+    
+    <ResponseField name="headers" type="object">
+      HTTP headers to include with each request
+    </ResponseField>
+    
+    <ResponseField name="body" type="string">
+      Request body for POST/PUT methods
+    </ResponseField>
+    
+    <ResponseField name="is_active" type="boolean">
+      Whether the cron job is currently active
+    </ResponseField>
+    
+    <ResponseField name="timezone" type="string">
+      Timezone for the cron job execution
+    </ResponseField>
+    
+    <ResponseField name="repeat_type" type="string">
+      Type of repetition: hourly, days, weeks, months, years
+    </ResponseField>
+    
+    <ResponseField name="repeat_every" type="integer">
+      Frequency of repetition (e.g., every 2 days)
+    </ResponseField>
+    
+    <ResponseField name="days_of_week" type="array">
+      Array of day numbers (0-6) for weekly schedules
+    </ResponseField>
+    
+    <ResponseField name="hours" type="integer">
+      Hour component of the scheduled time (0-23)
+    </ResponseField>
+    
+    <ResponseField name="minutes" type="integer">
+      Minute component of the scheduled time (0-59)
+    </ResponseField>
+    
+    <ResponseField name="end_type" type="string">
+      How the schedule ends: never, on, after
+    </ResponseField>
+    
+    <ResponseField name="end_date" type="string">
+      ISO 8601 timestamp when the schedule ends (if end_type is "on")
+    </ResponseField>
+    
+    <ResponseField name="end_occurrences" type="integer">
+      Number of occurrences before ending (if end_type is "after")
+    </ResponseField>
+    
+    <ResponseField name="max_retries" type="integer">
+      Maximum number of retry attempts on failure
+    </ResponseField>
+    
+    <ResponseField name="retry_delay_seconds" type="integer">
+      Seconds to wait between retry attempts
+    </ResponseField>
+    
+    <ResponseField name="timeout_seconds" type="integer">
+      Maximum seconds to wait for endpoint response
+    </ResponseField>
+    
+    <ResponseField name="success_callback_url" type="string">
+      Webhook URL to call on successful execution
+    </ResponseField>
+    
+    <ResponseField name="failure_callback_url" type="string">
+      Webhook URL to call on failed execution
+    </ResponseField>
+    
+    <ResponseField name="tags" type="array">
+      Array of tags for organization
+    </ResponseField>
+    
+    <ResponseField name="next_run_at" type="string">
+      ISO 8601 timestamp of the next scheduled execution
+    </ResponseField>
+    
+    <ResponseField name="last_run_at" type="string">
+      ISO 8601 timestamp of the last execution
+    </ResponseField>
+    
+    <ResponseField name="consecutive_failures" type="integer">
+      Number of consecutive failed executions
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp of when the cron job was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO 8601 timestamp of the last update
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET "https://api.a1base.com/v1/cron-jobs/{accountId}/details/550e8400-e29b-41d4-a716-446655440000" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const getCronJobDetails = async (cronJobId) => {
+  try {
+    const response = await axios.get(
+      `https://api.a1base.com/v1/cron-jobs/{accountId}/details/${cronJobId}`,
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret'
+        }
+      }
+    );
+    
+    console.log('Cron job details:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+getCronJobDetails('550e8400-e29b-41d4-a716-446655440000');
+```
+
+```python Python
+import requests
+
+def get_cron_job_details(cron_job_id):
+    url = f"https://api.a1base.com/v1/cron-jobs/{{accountId}}/details/{cron_job_id}"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret"
+    }
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        print("Cron job details:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+get_cron_job_details("550e8400-e29b-41d4-a716-446655440000")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Daily Sales Report",
+    "description": "Generate comprehensive sales report for the previous day",
+    "endpoint_url": "https://api.company.com/reports/daily",
+    "schedule": "0 9 * * *",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer report-api-token",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"report_type\": \"sales\", \"format\": \"pdf\"}",
+    "is_active": true,
+    "timezone": "America/New_York",
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "days_of_week": null,
+    "hours": 9,
+    "minutes": 0,
+    "end_type": "never",
+    "end_date": null,
+    "end_occurrences": null,
+    "max_retries": 3,
+    "retry_delay_seconds": 300,
+    "timeout_seconds": 30,
+    "success_callback_url": "https://api.company.com/webhooks/report-success",
+    "failure_callback_url": "https://api.company.com/webhooks/report-failure",
+    "tags": ["reports", "daily", "sales"],
+    "next_run_at": "2024-01-26T14:00:00Z",
+    "last_run_at": "2024-01-25T14:00:00Z",
+    "consecutive_failures": 0,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-20T10:30:00Z"
+  }
+}
+```
+
+</ResponseExample> 

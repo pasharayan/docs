@@ -1,0 +1,205 @@
+---
+title: "Trigger Cron Job"
+openapi: "POST /v1/cron-jobs/{accountId}/trigger/{cron_job_id}"
+---
+
+Manually trigger a cron job execution immediately, regardless of its schedule. This is useful for testing or when you need to run a job outside its normal schedule.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+<ParamField path="cron_job_id" type="string" required>
+  The unique identifier of the cron job to trigger (UUID format)
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  Execution result information
+  
+  <Expandable title="Execution Result">
+    <ResponseField name="execution_id" type="string">
+      Unique identifier for this execution
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Execution status: `success`, `failure`, `error`, `timeout`
+    </ResponseField>
+    
+    <ResponseField name="response_code" type="integer">
+      HTTP response code from the endpoint
+    </ResponseField>
+    
+    <ResponseField name="response_body" type="string">
+      Response body from the endpoint (truncated to 1KB)
+    </ResponseField>
+    
+    <ResponseField name="executed_at" type="string">
+      ISO 8601 timestamp of when the job was executed
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Note>
+Manual triggers bypass the schedule and execute immediately. The job must be active (`is_active: true`) to be triggered.
+</Note>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST "https://api.a1base.com/v1/cron-jobs/{accountId}/trigger/550e8400-e29b-41d4-a716-446655440000" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const triggerCronJob = async (cronJobId) => {
+  try {
+    const response = await axios.post(
+      `https://api.a1base.com/v1/cron-jobs/{accountId}/trigger/${cronJobId}`,
+      {},
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret'
+        }
+      }
+    );
+    
+    console.log('Execution result:', response.data);
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+triggerCronJob('550e8400-e29b-41d4-a716-446655440000');
+```
+
+```python Python
+import requests
+
+def trigger_cron_job(cron_job_id):
+    url = f"https://api.a1base.com/v1/cron-jobs/{{accountId}}/trigger/{cron_job_id}"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret"
+    }
+    
+    response = requests.post(url, headers=headers)
+    
+    if response.status_code == 200:
+        print("Execution result:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
+trigger_cron_job("550e8400-e29b-41d4-a716-446655440000")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+{
+  "data": {
+    "execution_id": "exe_123456789",
+    "status": "success",
+    "response_code": 200,
+    "response_body": "{\"message\": \"Report generated successfully\", \"report_id\": \"rpt_98765\"}",
+    "executed_at": "2024-01-25T15:45:00Z"
+  }
+}
+```
+
+```json Failure Response
+{
+  "data": {
+    "execution_id": "exe_987654321",
+    "status": "failure",
+    "response_code": 500,
+    "response_body": "{\"error\": \"Database connection failed\"}",
+    "executed_at": "2024-01-25T15:45:00Z"
+  }
+}
+```
+
+```json Timeout Response
+{
+  "data": {
+    "execution_id": "exe_456789123",
+    "status": "timeout",
+    "response_code": null,
+    "response_body": "Request timed out after 30 seconds",
+    "executed_at": "2024-01-25T15:45:00Z"
+  }
+}
+```
+
+</ResponseExample>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Testing New Endpoints">
+    Test your endpoint before enabling scheduled execution:
+    1. Create the cron job with `is_active: false`
+    2. Trigger it manually to verify it works
+    3. Update to `is_active: true` when ready
+  </Accordion>
+  
+  <Accordion title="On-Demand Execution">
+    Run scheduled tasks outside their normal schedule:
+    - Generate reports on demand
+    - Process data immediately
+    - Respond to user actions
+  </Accordion>
+  
+  <Accordion title="Debugging Failed Jobs">
+    When a scheduled execution fails:
+    1. Check the logs to understand the issue
+    2. Fix the problem
+    3. Manually trigger to verify the fix
+  </Accordion>
+  
+  <Accordion title="Initial Data Load">
+    Use manual triggers for initial setup:
+    - Load historical data
+    - Populate caches
+    - Initialize systems
+  </Accordion>
+</AccordionGroup>
+
+## Important Notes
+
+<Warning>
+- The cron job must be active (`is_active: true`) to be triggered
+- Manual triggers count towards your API rate limits
+- Execution follows the same retry logic as scheduled runs
+- Webhook callbacks will be triggered as configured
+</Warning>
+
+## Error Responses
+
+<ResponseField name="404 Not Found">
+  Cron job not found
+  ```json
+  {
+    "detail": "Cron job not found"
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="400 Bad Request">
+  Cron job is not active
+  ```json
+  {
+    "detail": "Cron job is not active"
+  }
+  ```
+</ResponseField> 

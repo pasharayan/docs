@@ -1,0 +1,146 @@
+---
+title: "Delete Cron Job"
+openapi: "DELETE /v1/cron-jobs/{accountId}/delete/{cron_job_id}"
+---
+
+Permanently delete a cron job. This action cannot be undone.
+
+## Path Parameters
+
+<ParamField path="accountId" type="string" required>
+  Your A1Base account ID
+</ParamField>
+
+<ParamField path="cron_job_id" type="string" required>
+  The unique identifier of the cron job to delete (UUID format)
+</ParamField>
+
+## Response
+
+Returns 204 No Content on successful deletion.
+
+<Warning>
+Deleting a cron job is permanent and cannot be undone. All associated execution history will also be deleted.
+</Warning>
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE "https://api.a1base.com/v1/cron-jobs/{accountId}/delete/550e8400-e29b-41d4-a716-446655440000" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const deleteCronJob = async (cronJobId) => {
+  try {
+    const response = await axios.delete(
+      `https://api.a1base.com/v1/cron-jobs/{accountId}/delete/${cronJobId}`,
+      {
+        headers: {
+          'X-API-Key': 'your-api-key',
+          'X-API-Secret': 'your-api-secret'
+        }
+      }
+    );
+    
+    console.log('Cron job deleted successfully');
+  } catch (error) {
+    console.error('Error:', error.response.data);
+  }
+};
+
+deleteCronJob('550e8400-e29b-41d4-a716-446655440000');
+```
+
+```python Python
+import requests
+
+def delete_cron_job(cron_job_id):
+    url = f"https://api.a1base.com/v1/cron-jobs/{{accountId}}/delete/{cron_job_id}"
+    
+    headers = {
+        "X-API-Key": "your-api-key",
+        "X-API-Secret": "your-api-secret"
+    }
+    
+    response = requests.delete(url, headers=headers)
+    
+    if response.status_code == 204:
+        print("Cron job deleted successfully")
+    else:
+        print("Error:", response.status_code, response.json())
+
+delete_cron_job("550e8400-e29b-41d4-a716-446655440000")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```text
+204 No Content
+```
+
+</ResponseExample>
+
+## Before Deleting
+
+Consider these alternatives before deleting a cron job:
+
+<AccordionGroup>
+  <Accordion title="Temporarily Disable">
+    Instead of deleting, you can deactivate the cron job:
+    ```json
+    PATCH /v1/cron-jobs/{accountId}/update/{cron_job_id}
+    {
+      "is_active": false
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Export Configuration">
+    Get the full configuration before deleting:
+    ```bash
+    GET /v1/cron-jobs/{accountId}/details/{cron_job_id}
+    ```
+    Save the response to recreate the job later if needed.
+  </Accordion>
+  
+  <Accordion title="Download Logs">
+    Export execution history before deletion:
+    ```bash
+    GET /v1/cron-jobs/{accountId}/logs/{cron_job_id}?limit=100
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Error Responses
+
+<ResponseField name="404 Not Found">
+  Cron job with the specified ID does not exist
+  
+  ```json
+  {
+    "detail": [
+      {
+        "loc": ["path", "cron_job_id"],
+        "msg": "Cron job not found",
+        "type": "not_found"
+      }
+    ]
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="401 Unauthorized">
+  Invalid or missing API credentials
+  
+  ```json
+  {
+    "detail": "Invalid API credentials"
+  }
+  ```
+</ResponseField> 

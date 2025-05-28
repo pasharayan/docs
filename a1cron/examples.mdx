@@ -1,0 +1,502 @@
+---
+title: "Examples"
+description: "Real-world examples and patterns for A1Cron"
+---
+
+# Examples
+
+Explore practical examples of how to use A1Cron for various automation scenarios.
+
+## Daily Operations
+
+### Daily Sales Report
+
+Generate a PDF report every morning at 9 AM EST:
+
+```json
+{
+  "name": "Daily Sales Report",
+  "description": "Generates comprehensive sales report for the previous day",
+  "endpoint_url": "https://api.company.com/reports/daily-sales",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer ${REPORT_API_KEY}",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"report_type\": \"sales\", \"format\": \"pdf\", \"date\": \"yesterday\"}",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "09:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 3,
+    "retry_delay_seconds": 300,
+    "timeout_seconds": 120
+  },
+  "callbacks": {
+    "success_url": "https://api.company.com/webhooks/report-generated",
+    "failure_url": "https://api.company.com/webhooks/report-failed"
+  },
+  "tags": ["reports", "daily", "sales", "production"]
+}
+```
+
+### Database Backup
+
+Nightly database backup at 2 AM:
+
+```json
+{
+  "name": "Nightly Database Backup",
+  "description": "Backup production database to S3",
+  "endpoint_url": "https://api.company.com/operations/backup",
+  "method": "POST",
+  "headers": {
+    "X-API-Key": "${BACKUP_API_KEY}"
+  },
+  "body": "{\"database\": \"production\", \"destination\": \"s3\", \"compression\": true}",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "02:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 5,
+    "retry_delay_seconds": 600,
+    "timeout_seconds": 300
+  },
+  "callbacks": {
+    "failure_url": "https://alerts.company.com/critical/backup-failed"
+  },
+  "tags": ["backup", "database", "critical"]
+}
+```
+
+## Weekly Operations
+
+### Weekly Team Summary
+
+Send team performance summary every Monday at 8 AM:
+
+```json
+{
+  "name": "Weekly Team Performance",
+  "description": "Email team performance metrics to managers",
+  "endpoint_url": "https://api.company.com/reports/team-weekly",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer ${REPORTS_TOKEN}"
+  },
+  "body": "{\"teams\": [\"sales\", \"support\", \"engineering\"], \"send_email\": true}",
+  "timezone": "America/Chicago",
+  "schedule_config": {
+    "repeat_type": "weeks",
+    "repeat_every": 1,
+    "time": "08:00",
+    "days_of_week": ["1"],
+    "end_type": "never"
+  },
+  "tags": ["reports", "weekly", "management"]
+}
+```
+
+### Weekday Data Sync
+
+Sync data between systems every weekday at 6 PM:
+
+```json
+{
+  "name": "Weekday CRM Sync",
+  "description": "Sync customer data from CRM to data warehouse",
+  "endpoint_url": "https://api.company.com/sync/crm-to-warehouse",
+  "method": "POST",
+  "headers": {
+    "X-Sync-Token": "${SYNC_TOKEN}"
+  },
+  "body": "{\"mode\": \"incremental\", \"since\": \"last_sync\"}",
+  "timezone": "America/Los_Angeles",
+  "schedule_config": {
+    "repeat_type": "weeks",
+    "repeat_every": 1,
+    "time": "18:00",
+    "days_of_week": ["1", "2", "3", "4", "5"],
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 3,
+    "retry_delay_seconds": 900,
+    "timeout_seconds": 180
+  },
+  "tags": ["sync", "crm", "data-warehouse"]
+}
+```
+
+## Hourly Operations
+
+### API Health Check
+
+Monitor API availability every hour:
+
+```json
+{
+  "name": "Production API Health Check",
+  "description": "Check if production API is responding",
+  "endpoint_url": "https://api.company.com/health",
+  "method": "GET",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "hourly",
+    "repeat_every": 1,
+    "time": "00:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 2,
+    "retry_delay_seconds": 30,
+    "timeout_seconds": 10
+  },
+  "callbacks": {
+    "failure_url": "https://alerts.pagerduty.com/webhook/api-down"
+  },
+  "tags": ["monitoring", "health", "critical"]
+}
+```
+
+### Cache Refresh
+
+Update cache every 2 hours:
+
+```json
+{
+  "name": "Product Cache Refresh",
+  "description": "Refresh product catalog cache",
+  "endpoint_url": "https://api.company.com/cache/refresh",
+  "method": "POST",
+  "headers": {
+    "X-Cache-Key": "${CACHE_KEY}"
+  },
+  "body": "{\"cache_type\": \"products\", \"force\": true}",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "hourly",
+    "repeat_every": 2,
+    "time": "00:30",
+    "end_type": "never"
+  },
+  "tags": ["cache", "products", "performance"]
+}
+```
+
+## Monthly Operations
+
+### Monthly Billing
+
+Process monthly subscriptions on the 1st:
+
+```json
+{
+  "name": "Monthly Subscription Billing",
+  "description": "Process all active monthly subscriptions",
+  "endpoint_url": "https://api.company.com/billing/process-monthly",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer ${BILLING_API_KEY}",
+    "Content-Type": "application/json"
+  },
+  "body": "{\"billing_cycle\": \"monthly\", \"retry_failed\": true}",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "months",
+    "repeat_every": 1,
+    "time": "04:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 5,
+    "retry_delay_seconds": 3600,
+    "timeout_seconds": 300
+  },
+  "callbacks": {
+    "success_url": "https://api.company.com/webhooks/billing-complete",
+    "failure_url": "https://api.company.com/webhooks/billing-failed"
+  },
+  "tags": ["billing", "monthly", "financial", "critical"]
+}
+```
+
+### Monthly Report Archive
+
+Archive old reports on the 1st of each month:
+
+```json
+{
+  "name": "Monthly Report Archive",
+  "description": "Move reports older than 90 days to cold storage",
+  "endpoint_url": "https://api.company.com/archive/reports",
+  "method": "POST",
+  "body": "{\"older_than_days\": 90, \"destination\": \"glacier\"}",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "months",
+    "repeat_every": 1,
+    "time": "03:00",
+    "end_type": "never"
+  },
+  "tags": ["archive", "storage", "maintenance"]
+}
+```
+
+## Limited Duration Campaigns
+
+### 30-Day Marketing Campaign
+
+Send daily campaign emails for 30 days:
+
+```json
+{
+  "name": "Summer Sale Campaign",
+  "description": "Send daily promotional emails for summer sale",
+  "endpoint_url": "https://api.company.com/campaigns/summer-sale/send",
+  "method": "POST",
+  "headers": {
+    "X-Campaign-ID": "summer-2024"
+  },
+  "body": "{\"segment\": \"all_subscribers\", \"template\": \"summer_sale_daily\"}",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "10:00",
+    "end_type": "after",
+    "end_occurrences": 30
+  },
+  "callbacks": {
+    "success_url": "https://api.company.com/campaigns/webhook/sent"
+  },
+  "tags": ["campaign", "marketing", "summer-sale", "temporary"]
+}
+```
+
+### Trial Period Reminders
+
+Send reminders during 14-day trial:
+
+```json
+{
+  "name": "Trial Reminder Sequence",
+  "description": "Send trial reminders on days 3, 7, and 13",
+  "endpoint_url": "https://api.company.com/trials/send-reminder",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer ${TRIAL_API_KEY}"
+  },
+  "body": "{\"trial_id\": \"${TRIAL_ID}\", \"reminder_type\": \"scheduled\"}",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "14:00",
+    "end_type": "on",
+    "end_date": "2024-12-31T23:59:59Z"
+  },
+  "tags": ["trial", "onboarding", "temporary"]
+}
+```
+
+## Complex Scheduling Patterns
+
+### Business Hours Only
+
+Run every 30 minutes during business hours (9 AM - 5 PM weekdays):
+
+```json
+{
+  "name": "Business Hours Sync",
+  "description": "Sync data every 30 minutes during business hours",
+  "endpoint_url": "https://api.company.com/sync/realtime",
+  "method": "POST",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "hourly",
+    "repeat_every": 1,
+    "time": "00:00",
+    "end_type": "never"
+  },
+  "headers": {
+    "X-Sync-Mode": "business-hours"
+  },
+  "tags": ["sync", "business-hours"]
+}
+```
+
+<Note>
+For true 30-minute intervals during business hours only, you would need to create multiple cron jobs or implement the logic in your endpoint.
+</Note>
+
+### Quarterly Reports
+
+Generate reports on the first day of each quarter:
+
+```json
+{
+  "name": "Quarterly Financial Report",
+  "description": "Generate comprehensive quarterly financial report",
+  "endpoint_url": "https://api.company.com/reports/quarterly-financial",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer ${FINANCIAL_API_KEY}"
+  },
+  "body": "{\"report_type\": \"quarterly\", \"include_projections\": true}",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "months",
+    "repeat_every": 3,
+    "time": "06:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 5,
+    "retry_delay_seconds": 1800,
+    "timeout_seconds": 600
+  },
+  "callbacks": {
+    "success_url": "https://api.company.com/webhooks/quarterly-report-ready"
+  },
+  "tags": ["reports", "quarterly", "financial", "executive"]
+}
+```
+
+## Error Handling Examples
+
+### With Exponential Backoff
+
+Implement exponential backoff using retry configuration:
+
+```json
+{
+  "name": "Data Export with Backoff",
+  "description": "Export data with exponential retry delays",
+  "endpoint_url": "https://api.company.com/export/large-dataset",
+  "method": "POST",
+  "timezone": "UTC",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "01:00",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 5,
+    "retry_delay_seconds": 60,
+    "timeout_seconds": 600
+  },
+  "callbacks": {
+    "failure_url": "https://api.company.com/alerts/export-failed"
+  },
+  "tags": ["export", "data", "large"]
+}
+```
+
+### With Different Failure Handling
+
+Different callbacks for different failure scenarios:
+
+```json
+{
+  "name": "Critical Payment Processing",
+  "description": "Process pending payments with comprehensive error handling",
+  "endpoint_url": "https://api.company.com/payments/process-pending",
+  "method": "POST",
+  "headers": {
+    "X-Payment-Key": "${PAYMENT_KEY}",
+    "X-Idempotency-Key": "${TIMESTAMP}"
+  },
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "hourly",
+    "repeat_every": 1,
+    "time": "00:15",
+    "end_type": "never"
+  },
+  "retry_config": {
+    "max_retries": 3,
+    "retry_delay_seconds": 300,
+    "timeout_seconds": 120
+  },
+  "callbacks": {
+    "success_url": "https://api.company.com/webhooks/payments-processed",
+    "failure_url": "https://alerts.company.com/critical/payment-processing-failed"
+  },
+  "tags": ["payments", "critical", "financial"]
+}
+```
+
+## Best Practices Examples
+
+### Using Tags Effectively
+
+```json
+{
+  "name": "Production Data Sync",
+  "tags": ["production", "sync", "critical", "team:data", "owner:john.doe"]
+}
+```
+
+### Idempotent Endpoints
+
+```json
+{
+  "headers": {
+    "X-Idempotency-Key": "cron-${JOB_ID}-${EXECUTION_TIME}"
+  }
+}
+```
+
+### Environment-Specific Configurations
+
+```json
+{
+  "name": "[PROD] Daily Cleanup",
+  "endpoint_url": "https://api.production.company.com/cleanup",
+  "tags": ["environment:production", "cleanup", "automated"]
+}
+```
+
+## Testing Patterns
+
+### Dry Run Mode
+
+```json
+{
+  "name": "Report Generator - Dry Run",
+  "endpoint_url": "https://api.company.com/reports/generate",
+  "headers": {
+    "X-Dry-Run": "true"
+  },
+  "body": "{\"mode\": \"test\", \"send_notifications\": false}",
+  "tags": ["test", "dry-run"]
+}
+```
+
+### Sandbox Environment
+
+```json
+{
+  "name": "[SANDBOX] Payment Test",
+  "endpoint_url": "https://sandbox.company.com/api/payments/test",
+  "headers": {
+    "X-Environment": "sandbox"
+  },
+  "tags": ["sandbox", "test", "payments"]
+}
+```
+
+## Need Help?
+
+If you need help implementing any of these patterns or have questions about your specific use case, contact our support team at [pennie@a1base.com](mailto:pennie@a1base.com). 
