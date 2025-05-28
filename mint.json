@@ -127,6 +127,7 @@
       "pages": [
         "a1cron/introduction",
         "a1cron/quickstart",
+        "a1cron/one-off-jobs",
         "a1cron/examples"
       ]
     },

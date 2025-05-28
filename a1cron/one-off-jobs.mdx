@@ -1,0 +1,370 @@
+---
+title: "One-Off Cron Jobs"
+description: "Schedule tasks to run only once at a specific time"
+---
+
+# One-Off Cron Jobs
+
+Sometimes you need to schedule a task to run just once at a specific time in the future. While A1Cron is primarily designed for recurring schedules, you can achieve one-off execution using a simple workaround with our existing scheduling options.
+
+<Note>
+This is a temporary workaround. We're developing enhanced features that will allow AI agents and applications to dynamically schedule one-time tasks more elegantly. Stay tuned for updates!
+</Note>
+
+## Why One-Off Jobs?
+
+One-off cron jobs are useful for:
+- **Scheduled reminders**: Send a reminder email at a specific future time
+- **Delayed processing**: Process data after a waiting period
+- **Time-sensitive operations**: Execute tasks at precise moments
+- **Event-driven scheduling**: Schedule follow-ups based on user actions
+- **AI agent tasks**: Allow AI systems to schedule future actions dynamically
+
+## Method 1: Using End Occurrences
+
+The cleanest approach is to create a cron job that ends after exactly one execution.
+
+### How It Works
+
+Set `end_type` to `"after"` and `end_occurrences` to `1`. The job will:
+1. Wait until the scheduled time
+2. Execute once
+3. Automatically deactivate
+
+### Example: Schedule a Task for Tomorrow at 2:30 PM
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.a1base.com/v1/cron-jobs/{accountId}/create \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Send Follow-up Email",
+    "description": "One-time follow-up email to customer",
+    "endpoint_url": "https://api.example.com/send-followup",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"customer_id\": \"12345\", \"template\": \"followup_24h\"}",
+    "timezone": "America/New_York",
+    "schedule_config": {
+      "repeat_type": "days",
+      "repeat_every": 1,
+      "time": "14:30",
+      "end_type": "after",
+      "end_occurrences": 1
+    },
+    "tags": ["one-off", "followup", "customer-12345"],
+    "is_active": true
+  }'
+```
+
+```javascript Node.js
+const scheduleOneOffTask = async () => {
+  const response = await axios.post(
+    'https://api.a1base.com/v1/cron-jobs/{accountId}/create',
+    {
+      name: "Send Follow-up Email",
+      description: "One-time follow-up email to customer",
+      endpoint_url: "https://api.example.com/send-followup",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        customer_id: "12345",
+        template: "followup_24h"
+      }),
+      timezone: "America/New_York",
+      schedule_config: {
+        repeat_type: "days",
+        repeat_every: 1,
+        time: "14:30",
+        end_type: "after",
+        end_occurrences: 1
+      },
+      tags: ["one-off", "followup", "customer-12345"],
+      is_active: true
+    },
+    {
+      headers: {
+        'X-API-Key': 'your-api-key',
+        'X-API-Secret': 'your-api-secret'
+      }
+    }
+  );
+  
+  console.log(`One-off task scheduled for: ${response.data.next_run_at}`);
+};
+```
+
+```python Python
+import requests
+from datetime import datetime, timedelta
+
+def schedule_one_off_task():
+    # Calculate tomorrow's date
+    tomorrow = datetime.now() + timedelta(days=1)
+    
+    data = {
+        "name": "Send Follow-up Email",
+        "description": "One-time follow-up email to customer",
+        "endpoint_url": "https://api.example.com/send-followup",
+        "method": "POST",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": json.dumps({
+            "customer_id": "12345",
+            "template": "followup_24h"
+        }),
+        "timezone": "America/New_York",
+        "schedule_config": {
+            "repeat_type": "days",
+            "repeat_every": 1,
+            "time": "14:30",
+            "end_type": "after",
+            "end_occurrences": 1
+        },
+        "tags": ["one-off", "followup", "customer-12345"],
+        "is_active": True
+    }
+    
+    response = requests.post(
+        "https://api.a1base.com/v1/cron-jobs/{accountId}/create",
+        headers={
+            "X-API-Key": "your-api-key",
+            "X-API-Secret": "your-api-secret"
+        },
+        json=data
+    )
+    
+    if response.status_code == 201:
+        next_run = response.json()['data']['next_run_at']
+        print(f"One-off task scheduled for: {next_run}")
+```
+
+</CodeGroup>
+
+## Method 2: Using End Date
+
+Alternatively, set an end date shortly after the desired execution time.
+
+### How It Works
+
+Set `end_type` to `"on"` with an `end_date` just after your target time. This ensures:
+1. The job runs at the scheduled time
+2. The schedule expires immediately after
+
+### Example: Schedule for a Specific Date and Time
+
+```json
+{
+  "name": "Holiday Sale Announcement",
+  "description": "Send holiday sale email on Dec 25 at 9 AM",
+  "endpoint_url": "https://api.example.com/send-announcement",
+  "method": "POST",
+  "timezone": "America/New_York",
+  "schedule_config": {
+    "repeat_type": "days",
+    "repeat_every": 1,
+    "time": "09:00",
+    "end_type": "on",
+    "end_date": "2024-12-25T09:01:00-05:00"
+  },
+  "tags": ["one-off", "holiday", "announcement"]
+}
+```
+
+<Warning>
+When using the end date method, ensure the end_date is at least 1 minute after your scheduled time to account for any execution delays.
+</Warning>
+
+## Practical Examples
+
+### 1. Delayed Task Execution
+
+Schedule a task to run in 2 hours:
+
+```javascript
+const scheduleDelayedTask = async (delayHours = 2) => {
+  const now = new Date();
+  const runTime = new Date(now.getTime() + (delayHours * 60 * 60 * 1000));
+  const timeStr = `${runTime.getHours().toString().padStart(2, '0')}:${runTime.getMinutes().toString().padStart(2, '0')}`;
+  
+  const response = await createCronJob({
+    name: `Delayed Task - ${now.toISOString()}`,
+    endpoint_url: "https://api.example.com/process-delayed",
+    schedule_config: {
+      repeat_type: "days",
+      repeat_every: 1,
+      time: timeStr,
+      end_type: "after",
+      end_occurrences: 1
+    }
+  });
+  
+  return response.data;
+};
+```
+
+### 2. AI Agent Scheduling
+
+Allow an AI agent to schedule a follow-up action:
+
+```python
+def ai_schedule_followup(user_id, action, delay_minutes):
+    """
+    AI agent schedules a one-time follow-up action
+    """
+    run_time = datetime.now() + timedelta(minutes=delay_minutes)
+    time_str = run_time.strftime("%H:%M")
+    
+    cron_data = {
+        "name": f"AI Follow-up: {action}",
+        "description": f"AI-scheduled task for user {user_id}",
+        "endpoint_url": "https://api.example.com/ai/execute-action",
+        "method": "POST",
+        "body": json.dumps({
+            "user_id": user_id,
+            "action": action,
+            "scheduled_by": "ai_agent"
+        }),
+        "timezone": "UTC",
+        "schedule_config": {
+            "repeat_type": "days",
+            "repeat_every": 1,
+            "time": time_str,
+            "end_type": "after",
+            "end_occurrences": 1
+        },
+        "callbacks": {
+            "success_url": "https://api.example.com/ai/action-completed",
+            "failure_url": "https://api.example.com/ai/action-failed"
+        },
+        "tags": ["ai-scheduled", "one-off", f"user-{user_id}"]
+    }
+    
+    # Create the one-off cron job
+    return create_cron_job(cron_data)
+```
+
+### 3. Event-Driven Scheduling
+
+Schedule a task based on user events:
+
+```javascript
+// When user signs up, schedule a welcome email for 24 hours later
+app.post('/user/signup', async (req, res) => {
+  const { userId, email } = req.body;
+  
+  // Create user account
+  await createUser({ userId, email });
+  
+  // Schedule welcome follow-up for tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const timeStr = "10:00"; // 10 AM in user's timezone
+  
+  await scheduleOneOffCron({
+    name: `Welcome Email - ${userId}`,
+    endpoint_url: "https://api.example.com/emails/send-welcome",
+    method: "POST",
+    body: JSON.stringify({ userId, email }),
+    timezone: getUserTimezone(userId),
+    schedule_config: {
+      repeat_type: "days",
+      repeat_every: 1,
+      time: timeStr,
+      end_type: "after",
+      end_occurrences: 1
+    },
+    tags: ["welcome", "one-off", `user-${userId}`]
+  });
+  
+  res.json({ message: "User created and welcome email scheduled" });
+});
+```
+
+## Best Practices for One-Off Jobs
+
+<AccordionGroup>
+  <Accordion title="Use Descriptive Names">
+    Include timestamps or unique identifiers in job names to distinguish one-off tasks:
+    ```json
+    {
+      "name": "Follow-up Email - User 12345 - 2024-01-25"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Tag Appropriately">
+    Use tags to identify and manage one-off jobs:
+    ```json
+    {
+      "tags": ["one-off", "temporary", "user-12345", "2024-01-25"]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Clean Up After Execution">
+    Consider deleting completed one-off jobs to keep your job list clean:
+    ```javascript
+    // In your success webhook handler
+    app.post('/webhooks/cron-success', async (req, res) => {
+      const { cron_job_id, cron_job_name } = req.body;
+      
+      if (cron_job_name.includes('one-off')) {
+        // Delete the completed one-off job
+        await deleteCronJob(cron_job_id);
+      }
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Monitor Execution">
+    Set up webhook callbacks to confirm one-off tasks complete successfully:
+    ```json
+    {
+      "callbacks": {
+        "success_url": "https://api.example.com/one-off-completed",
+        "failure_url": "https://api.example.com/one-off-failed"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Limitations and Considerations
+
+1. **Minimum Scheduling Time**: Jobs can only be scheduled for future times, not immediate execution
+2. **Timezone Awareness**: Ensure you're using the correct timezone for your one-off execution
+3. **No Second Precision**: Cron jobs run at minute precision (HH:MM), not exact seconds
+4. **Cleanup Required**: One-off jobs remain in your job list after execution unless manually deleted
+
+## Future Improvements
+
+<Info>
+We're actively developing enhanced features for one-off scheduling:
+
+- **Native one-off job type**: Direct support without workarounds
+- **Dynamic scheduling API**: Allow AI agents to schedule tasks programmatically
+- **Immediate execution**: Option to run tasks with minimal delay
+- **Batch one-off scheduling**: Create multiple one-off tasks in a single request
+- **Auto-cleanup**: Automatic removal of completed one-off jobs
+
+These improvements will make A1Cron even more powerful for AI agents and dynamic applications.
+</Info>
+
+## Summary
+
+While A1Cron is designed for recurring schedules, you can effectively create one-off jobs using:
+1. **End occurrences method**: Set `end_occurrences: 1` for clean one-time execution
+2. **End date method**: Set an end date shortly after the scheduled time
+
+Both methods work reliably for scheduling tasks that need to run exactly once at a future time. Choose the method that best fits your use case and remember to tag your one-off jobs appropriately for easy management.
+
+For immediate task execution, consider using the [manual trigger](/a1cron/trigger) feature instead of scheduling a one-off job. 
