@@ -218,6 +218,115 @@ When an email is received, A1Base will send a POST request to your webhook endpo
 | `service` | string | Always "email" for email webhooks |
 | `raw_email_data` | string | Complete raw email content including headers and body |
 
+## Webhook Security
+
+To ensure the security and authenticity of webhook requests, A1Base includes security headers with each webhook POST request:
+
+### Security Headers
+
+| Header | Description |
+|--------|-------------|
+| `x-signature` | HMAC-SHA256 signature to verify request authenticity |
+| `x-timestamp` | Unix timestamp used in the signature, helps prevent replay attacks |
+
+### Signature Verification
+
+The signature is generated using:
+```
+HMAC_SHA256(secret, timestamp + raw JSON body)
+```
+
+Here's how to verify webhook signatures in your application:
+
+<Card title="Signature Verification Examples" icon="shield-check">
+  <Tabs>
+    <Tab title="Python (Flask)">
+      ```python
+      import hmac
+      import hashlib
+      from flask import Flask, request, jsonify
+      
+      app = Flask(__name__)
+      
+      @app.route('/webhook/email', methods=['POST'])
+      def email_webhook():
+          # Get the webhook headers and raw body
+          signature = request.headers.get('x-signature')
+          timestamp = request.headers.get('x-timestamp')
+          raw_body = request.get_data()
+          
+          # Your webhook secret from A1Base dashboard
+          secret = 'your_webhook_secret'
+          
+          # Create the expected signature
+          message = timestamp + raw_body.decode()
+          expected_signature = hmac.new(
+              secret.encode(),
+              message.encode(),
+              hashlib.sha256
+          ).hexdigest()
+          
+          # Compare signatures using a secure constant-time comparison
+          if not hmac.compare_digest(signature, expected_signature):
+              return jsonify({'error': 'Invalid signature'}), 403
+              
+          # Process the verified webhook
+          data = request.json
+          print(f"Received verified email: {data['subject']}")
+          
+          return jsonify({'status': 'success'}), 200
+      ```
+    </Tab>
+    <Tab title="Node.js (Express)">
+      ```javascript
+      const crypto = require('crypto');
+      const express = require('express');
+      const app = express();
+      
+      // Capture raw body for signature verification
+      app.use(express.json({
+        verify: (req, res, buf) => {
+          req.rawBody = buf;
+        }
+      }));
+      
+      app.post('/webhook/email', (req, res) => {
+        const signature = req.headers['x-signature'];
+        const timestamp = req.headers['x-timestamp'];
+        const rawBody = req.rawBody.toString();
+        const secret = process.env.A1BASE_WEBHOOK_SECRET;
+        
+        // Create expected signature
+        const expectedSignature = crypto
+          .createHmac('sha256', secret)
+          .update(timestamp + rawBody)
+          .digest('hex');
+        
+        // Compare signatures
+        if (signature !== expectedSignature) {
+          return res.status(403).send('Invalid signature');
+        }
+        
+        // Process verified webhook
+        const data = req.body;
+        console.log(`Received verified email: ${data.subject}`);
+        
+        res.status(200).json({ status: 'success' });
+      });
+      ```
+    </Tab>
+  </Tabs>
+</Card>
+
+### Security Best Practices
+
+1. **Always verify signatures** to ensure requests are from A1Base
+2. **Check timestamp age** to prevent replay attacks (reject requests older than 5 minutes)
+3. **Use environment variables** to store your webhook secret
+4. **Implement proper error handling** for invalid signatures
+5. **Use HTTPS endpoints** in production
+6. **Keep your webhook URL and secret private**
+
 ## Example Raw Email Data
 
 The `raw_email_data` field contains the complete email including headers, which you can parse to extract additional information like:
