@@ -14,6 +14,7 @@ The following parameters are used when sending an email:
 | `subject` | string | Yes | Subject line of the email |
 | `body` | string | Yes | Content of the email (plain text or HTML) |
 | `headers` | object | No | Optional email headers as key-value pairs (cc, bcc, etc.) |
+| `attachment_uri` | array | No | Array of URIs pointing to files you want to attach to the email |
 
 ## Code Examples
 
@@ -51,6 +52,25 @@ The following parameters are used when sending an email:
             "cc": "pennie@a1base.com",
             "bcc": "pasha@a1base.com"
         }
+    }'
+    
+    ### Send an Email with Attachments
+    
+    ```bash
+    curl --location 'https://api.a1base.com/v1/emails/{account_id}/send' \
+    --header 'X-API-Key: YOUR_API_KEY' \
+    --header 'X-API-Secret: YOUR_API_SECRET' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "sender_address": "hello@a1send.com",
+        "recipient_address": "recipient@example.com",
+        "subject": "Email with Attachments",
+        "body": "Please find the attached files.",
+        "headers": {},
+        "attachment_uri": [
+            "https://example.com/files/document.pdf",
+            "https://example.com/files/image.jpg"
+        ]
     }'
     ```
   </Tab>
@@ -129,6 +149,36 @@ The following parameters are used when sending an email:
             "cc": "pennie@a1base.com",
             "bcc": "pasha@a1base.com"
         }
+    }
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    print(response.json())
+    ```
+    
+    ### Send an Email with Attachments
+    
+    ```python
+    import requests
+    import json
+
+    url = "https://api.a1base.com/v1/emails/{account_id}/send"
+    
+    headers = {
+        'X-API-Key': 'YOUR_API_KEY',
+        'X-API-Secret': 'YOUR_API_SECRET',
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        "sender_address": "hello@a1send.com",
+        "recipient_address": "recipient@example.com",
+        "subject": "Email with Attachments",
+        "body": "Please find the attached files.",
+        "headers": {},
+        "attachment_uri": [
+            "https://example.com/files/document.pdf",
+            "https://example.com/files/image.jpg"
+        ]
     }
     
     response = requests.post(url, headers=headers, data=json.dumps(data))
@@ -215,6 +265,36 @@ The following parameters are used when sending an email:
       .then(response => console.log(response.data))
       .catch(error => console.error('Error:', error));
     ```
+    
+    ### Send an Email with Attachments
+    
+    ```javascript
+    const axios = require('axios');
+
+    const url = 'https://api.a1base.com/v1/emails/{account_id}/send';
+    
+    const headers = {
+      'X-API-Key': 'YOUR_API_KEY',
+      'X-API-Secret': 'YOUR_API_SECRET',
+      'Content-Type': 'application/json'
+    };
+    
+    const data = {
+      sender_address: 'hello@a1send.com',
+      recipient_address: 'recipient@example.com',
+      subject: 'Email with Attachments',
+      body: 'Please find the attached files.',
+      headers: {},
+      attachment_uri: [
+        'https://example.com/files/document.pdf',
+        'https://example.com/files/image.jpg'
+      ]
+    };
+    
+    axios.post(url, data, { headers })
+      .then(response => console.log(response.data))
+      .catch(error => console.error('Error:', error));
+    ```
   </Tab>
 </Tabs>
 
@@ -223,3 +303,27 @@ The following parameters are used when sending an email:
   
   Don't hesitate to reach out to <a href="mailto:pennie@a1base.com">pennie@a1base.com</a> or <a href="mailto:pasha@a1base.com">pasha@a1base.com</a> if there's any features you'd like to see or prioritised!
 </Info>
+
+## Working with Attachments
+
+To include attachments in your emails, use the `attachment_uri` parameter which accepts an array of URLs pointing to the files you want to attach.
+
+### Supported Attachment Types
+
+A1Mail supports most common file types for email attachments, including but not limited to:
+
+- PDF documents (*.pdf)
+- Images (*.jpg, *.jpeg, *.png, *.gif)
+- Office documents (*.docx, *.xlsx, *.pptx)
+- Text files (*.txt, *.csv)
+
+### Attachment Size Limits
+
+Attachments are subject to size limitations. Please ensure your attachments adhere to the following guidelines:
+
+- Individual attachment: Maximum 10MB
+- Total attachments per email: Maximum 25MB
+
+### Hosting Attachments
+
+Attachments must be accessible via a public URL. You can use your own hosting solution or any publicly accessible file storage service. Make sure the URLs provided in the `attachment_uri` array are directly accessible without authentication.
