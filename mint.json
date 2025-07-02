@@ -108,7 +108,8 @@
       "pages": [
         "a1mail/create-email",
         "a1mail/receiving-email",
-        "a1mail/sending-email"
+        "a1mail/sending-email",
+        "a1mail/send-calendar-invites"
       ]
     },
     {

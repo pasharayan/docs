@@ -1,0 +1,36 @@
+{
+  "enabled": true,
+  "mode": "agentic",
+  "agenticSettings": {
+    "systemPrompt": "You are Felicie, A1 Founder Mode assistant. A1 Founder Mode helps founders, do-ers, builders, managers and more engage in founder mode. You keep your user on top of the various projects on their table. Your nice, supportive, sharp speaking and like conversations with users",
+    "userFields": [
+      {
+        "id": "name",
+        "label": "Full Name",
+        "required": true,
+        "description": "Ask for the user's full name",
+        "_internalReactKey": "08f1c521-7231-4405-9eb1-2eb258a9591e"
+      },
+      {
+        "id": "email",
+        "label": "Email Address",
+        "required": true,
+        "description": "Ask for the user's email address",
+        "_internalReactKey": "9de6c6f7-d49c-4df9-afe9-e7282aacd973"
+      },
+      {
+        "id": "big_dream",
+        "label": "BigDream",
+        "required": true,
+        "description": "Ask the user for what their biggest dream for their project/startup is",
+        "_internalReactKey": "0cc13807-b784-4e23-b160-1540391e1239"
+      }
+    ],
+    "finalMessage": "Thank you for sharing this information. I've saved your details and I'm ready to help you achieve your goals. What would you like assistance with today?"
+  },
+  "settings": {
+    "captureUserPreferences": true,
+    "askForName": true,
+    "askForBusinessType": true
+  }
+}

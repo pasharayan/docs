@@ -1,0 +1,354 @@
+---
+title: 'Send Calendar Invites'
+description: 'Send calendar invites programmatically through the A1Mail API with just a few lines of code'
+---
+
+## Request Parameters
+
+The following parameters are used when sending a calendar invite:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `sender_address` | string | Yes | Email address that will appear in the "From" field |
+| `recipient_address` | string | Yes | Email address of the recipient |
+| `event_title` | string | Yes | Title of the calendar event |
+| `start_time` | string | Yes | Start time of the event in ISO 8601 format (UTC) |
+| `end_time` | string | Yes | End time of the event in ISO 8601 format (UTC) |
+| `organizer_name` | string | Yes | Name of the event organizer |
+| `method` | string | Yes | Calendar method (REQUEST, CANCEL, REPLY) |
+| `location` | string | No | Location of the event |
+| `description` | string | No | Description of the event |
+| `attendees` | array | No | Array of attendee email addresses |
+| `mail_headers` | object | No | Additional email headers (sequence, etc.) |
+
+## Code Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ### Send a Basic Calendar Invite
+    
+    ```bash
+    curl --location 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite' \
+    --header 'X-API-Key: YOUR_API_KEY' \
+    --header 'X-API-Secret: YOUR_API_SECRET' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "REQUEST"
+    }'
+    ```
+    
+    ### Send a Detailed Calendar Invite
+    
+    ```bash
+    curl --location 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite' \
+    --header 'X-API-Key: YOUR_API_KEY' \
+    --header 'X-API-Secret: YOUR_API_SECRET' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "REQUEST",
+        "location": "Conference Room 1",
+        "description": "Monthly team sync-up",
+        "attendees": ["recipient@example.com", "pennie@a1base.com"],
+        "mail_headers": {
+            "sequence": 0
+        }
+    }'
+    ```
+    
+    ### Cancel a Calendar Event
+    
+    ```bash
+    curl --location 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite' \
+    --header 'X-API-Key: YOUR_API_KEY' \
+    --header 'X-API-Secret: YOUR_API_SECRET' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "CANCEL",
+        "location": "Conference Room 1",
+        "description": "Meeting has been cancelled",
+        "attendees": ["recipient@example.com", "pennie@a1base.com"],
+        "mail_headers": {
+            "sequence": 1
+        }
+    }'
+    ```
+  </Tab>
+  
+  <Tab title="Python">
+    ### Send a Basic Calendar Invite
+    
+    ```python
+    import requests
+    import json
+
+    url = "https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite"
+    
+    headers = {
+        'X-API-Key': 'YOUR_API_KEY',
+        'X-API-Secret': 'YOUR_API_SECRET',
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "REQUEST"
+    }
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    print(response.json())
+    ```
+    
+    ### Send a Detailed Calendar Invite
+    
+    ```python
+    import requests
+    import json
+
+    url = "https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite"
+    
+    headers = {
+        'X-API-Key': 'YOUR_API_KEY',
+        'X-API-Secret': 'YOUR_API_SECRET',
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "REQUEST",
+        "location": "Conference Room 1",
+        "description": "Monthly team sync-up",
+        "attendees": ["recipient@example.com", "pennie@a1base.com"],
+        "mail_headers": {
+            "sequence": 0
+        }
+    }
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    print(response.json())
+    ```
+    
+    ### Cancel a Calendar Event
+    
+    ```python
+    import requests
+    import json
+
+    url = "https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite"
+    
+    headers = {
+        'X-API-Key': 'YOUR_API_KEY',
+        'X-API-Secret': 'YOUR_API_SECRET',
+        'Content-Type': 'application/json'
+    }
+    
+    data = {
+        "sender_address": "sender@example.com",
+        "recipient_address": "recipient@example.com",
+        "event_title": "Team Meeting",
+        "start_time": "2024-06-10T10:00:00Z",
+        "end_time": "2024-06-10T11:00:00Z",
+        "organizer_name": "Alice Smith",
+        "method": "CANCEL",
+        "location": "Conference Room 1",
+        "description": "Meeting has been cancelled",
+        "attendees": ["recipient@example.com", "pennie@a1base.com"],
+        "mail_headers": {
+            "sequence": 1
+        }
+    }
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    print(response.json())
+    ```
+  </Tab>
+  
+  <Tab title="JavaScript">
+    ### Send a Basic Calendar Invite
+    
+    ```javascript
+    const axios = require('axios');
+
+    const url = 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite';
+    
+    const headers = {
+      'X-API-Key': 'YOUR_API_KEY',
+      'X-API-Secret': 'YOUR_API_SECRET',
+      'Content-Type': 'application/json'
+    };
+    
+    const data = {
+      sender_address: 'sender@example.com',
+      recipient_address: 'recipient@example.com',
+      event_title: 'Team Meeting',
+      start_time: '2024-06-10T10:00:00Z',
+      end_time: '2024-06-10T11:00:00Z',
+      organizer_name: 'Alice Smith',
+      method: 'REQUEST'
+    };
+    
+    axios.post(url, data, { headers })
+      .then(response => console.log(response.data))
+      .catch(error => console.error('Error:', error));
+    ```
+    
+    ### Send a Detailed Calendar Invite
+    
+    ```javascript
+    const axios = require('axios');
+
+    const url = 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite';
+    
+    const headers = {
+      'X-API-Key': 'YOUR_API_KEY',
+      'X-API-Secret': 'YOUR_API_SECRET',
+      'Content-Type': 'application/json'
+    };
+    
+    const data = {
+      sender_address: 'sender@example.com',
+      recipient_address: 'recipient@example.com',
+      event_title: 'Team Meeting',
+      start_time: '2024-06-10T10:00:00Z',
+      end_time: '2024-06-10T11:00:00Z',
+      organizer_name: 'Alice Smith',
+      method: 'REQUEST',
+      location: 'Conference Room 1',
+      description: 'Monthly team sync-up',
+      attendees: ['recipient@example.com', 'pennie@a1base.com'],
+      mail_headers: {
+        sequence: 0
+      }
+    };
+    
+    axios.post(url, data, { headers })
+      .then(response => console.log(response.data))
+      .catch(error => console.error('Error:', error));
+    ```
+    
+    ### Cancel a Calendar Event
+    
+    ```javascript
+    const axios = require('axios');
+
+    const url = 'https://api.a1base.com/v1/emails/{account_id}/send-calendar-invite';
+    
+    const headers = {
+      'X-API-Key': 'YOUR_API_KEY',
+      'X-API-Secret': 'YOUR_API_SECRET',
+      'Content-Type': 'application/json'
+    };
+    
+    const data = {
+      sender_address: 'sender@example.com',
+      recipient_address: 'recipient@example.com',
+      event_title: 'Team Meeting',
+      start_time: '2024-06-10T10:00:00Z',
+      end_time: '2024-06-10T11:00:00Z',
+      organizer_name: 'Alice Smith',
+      method: 'CANCEL',
+      location: 'Conference Room 1',
+      description: 'Meeting has been cancelled',
+      attendees: ['recipient@example.com', 'pennie@a1base.com'],
+      mail_headers: {
+        sequence: 1
+      }
+    };
+    
+    axios.post(url, data, { headers })
+      .then(response => console.log(response.data))
+      .catch(error => console.error('Error:', error));
+    ```
+  </Tab>
+</Tabs>
+
+<Info type="info" emoji="💡">
+  <b>We'd love to hear from you!</b>
+  
+  Don't hesitate to reach out to <a href="mailto:pennie@a1base.com">pennie@a1base.com</a> or <a href="mailto:pasha@a1base.com">pasha@a1base.com</a> if there's any features you'd like to see or prioritised!
+</Info>
+
+## Calendar Invite Methods
+
+The A1Mail API supports different calendar methods for managing events:
+
+### REQUEST
+Used to create new calendar events or invite attendees to an event. This is the most common method for sending calendar invites.
+
+### CANCEL
+Used to cancel an existing calendar event. When using this method, make sure to increment the `sequence` number in `mail_headers` to indicate this is an update to the original event.
+
+### REPLY
+Used by attendees to respond to calendar invites (Accept, Decline, Tentative). This method is typically used when building calendar applications that need to handle responses.
+
+## Time Format Guidelines
+
+All time values should be provided in ISO 8601 format with UTC timezone:
+
+- **Format**: `YYYY-MM-DDTHH:MM:SSZ`
+- **Example**: `2024-06-10T10:00:00Z`
+- **Time Zone**: Always use UTC (Z suffix)
+
+The recipient's calendar application will automatically convert times to their local timezone for display.
+
+## Working with Attendees
+
+When specifying attendees, provide an array of email addresses. The system will automatically:
+
+- Send calendar invites to all specified attendees
+- Handle RSVP responses if configured
+- Track attendance status for each attendee
+
+## Understanding Sequence Numbers
+
+The `mail_headers` field, specifically the `sequence` attribute, is used in calendar invites to manage updates to events. Here's how it works:
+
+### Purpose of Sequence in Calendar Invites
+
+**Event Versioning**: The sequence number is used to track the version of a calendar event. Each time an event is updated (e.g., time change, location change), the sequence number is incremented. This helps recipients' calendar applications understand that the event has been modified and that they should update the existing event details with the new information.
+
+**Conflict Resolution**: By using a sequence number, calendar systems can resolve conflicts between different versions of the same event. If a recipient receives multiple updates for the same event, the update with the highest sequence number is considered the most recent and authoritative.
+
+**Synchronization**: It ensures that all participants have the latest version of the event. When an event organizer sends an update, the sequence number helps ensure that all attendees' calendars are synchronized with the latest event details.
+
+### How It Works
+
+- **Initial Event**: When an event is first created, the sequence number is typically set to `0`
+- **Event Update**: If the event is updated, the sequence number is incremented (e.g., from `0` to `1`)
+- **Event Cancellation**: If the event is canceled, the sequence number is also incremented to indicate a change
+
+### Example Sequence Flow
+
+1. **Original Event**: `sequence: 0`
+2. **First Update**: `sequence: 1` (e.g., time changed)
+3. **Second Update**: `sequence: 2` (e.g., location changed)
+4. **Cancellation**: `sequence: 3`
+
+By using the sequence number, calendar applications can ensure that they are displaying the most current version of an event to users.
