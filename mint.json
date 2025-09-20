@@ -37,6 +37,10 @@
     {
       "name": "A1Cron",
       "url": "a1cron"
+    },
+    {
+      "name": "A1Zap",
+      "url": "a1zap"
     }
   ],
   "anchors": [
@@ -149,8 +153,22 @@
         "a1cron/get-logs",
         "a1cron/webhooks"
       ]
+    },
+    {
+      "group": "A1Zap",
+      "pages": [
+        "a1zap/index"
+      ]
+    },
+    
+    {
+      "group": "Messaging API",
+      "pages": [
+        "a1zap/messaging-api"
+      ]
     }
   ],
+  
   "footerSocials": {
     "x": "https://x.com/a1baseapi",
     "github": "https://github.com/a1baseai",

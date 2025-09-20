@@ -1,0 +1,48 @@
+---
+title: "Messaging API"
+description: "Send and retrieve messages with A1Zap"
+---
+
+## Messaging API
+
+Use these endpoints to send individual messages and fetch recent messages.
+
+### Send an Individual Message
+
+Replace placeholders like `<YOUR_API_KEY>`, `<AGENT_ID>`, and `<CHAT_ID>` with your values.
+
+```bash
+curl -X POST "https://api.a1zap.com/v1/messages/individual/<AGENT_ID>/send" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: <YOUR_API_KEY>" \
+  -d '{
+  "metadata" : {
+    "source" : "ios"
+  },
+  "chatId" : "<CHAT_ID>",
+  "content" : "Hello from the API!"
+}'
+```
+
+### Get Messages (via Agent Webhook Runner)
+
+```bash
+curl -X POST "https://api.a1zap.com/api/run/agentWebhook/getMessages" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "args" : {
+    "agentId" : "<AGENT_ID>",
+    "apiKey" : "<YOUR_API_KEY>",
+    "chatId" : "<CHAT_ID>",
+    "limit" : 25
+  },
+  "format" : "json"
+}'
+```
+
+#### Notes
+
+- `X-API-Key` should be an API key with permissions to send/read messages for the target agent.
+- `chatId` identifies the conversation thread.
+- `metadata.source` is optional and can be used for analytics/debugging.
+
